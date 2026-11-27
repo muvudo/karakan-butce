@@ -46,19 +46,29 @@
       </div>
     </div>
 
-    <!-- Period Switcher -->
-    <div class="max-w-lg mx-auto px-4 pb-2.5 flex items-center justify-between gap-2 text-xs">
-      <select id="periodSelect" onchange="changePeriod()" class="bg-slate-800 text-white border border-slate-700 rounded-lg px-2.5 py-1.5 font-semibold focus:outline-none">
-        <option value="2026-11">Kasım Sonu (28 Kas – 27 Ara 2026)</option>
-        <option value="2026-12">Aralık 2026 (Maaş: 81.000 ₺)</option>
-        <option value="2027-01">Ocak 2027 (Maaş: 81.000 ₺)</option>
-        <option value="2027-02">Şubat 2027 (Maaş: 81.000 ₺)</option>
-        <option value="2027-03">Mart 2027 (Maaş: 81.000 ₺)</option>
-        <option value="2027-04">Nisan 2027 (Dyson Son Taksit)</option>
-        <option value="2027-05">Mayıs 2027 (Dyson Bitti!)</option>
-      </select>
-      <button onclick="openBudgetModal()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-sky-300 font-semibold hover:bg-slate-700">
-        ✏️ Kasa / Limit Düzenle
+    <!-- Unlimited Year / Month Calendar Switcher -->
+    <div class="max-w-lg mx-auto px-4 pb-2.5 flex items-center justify-between gap-1.5 text-xs">
+      <div class="flex items-center gap-1 flex-1">
+        <button type="button" onclick="stepMonth(-1)" class="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700 active:scale-95 font-bold" title="Önceki Ay">◀</button>
+        <select id="monthSelect" onchange="onYearMonthChange()" class="bg-slate-800 text-white border border-slate-700 rounded-lg px-2 py-1.5 font-semibold focus:outline-none flex-1 min-w-0">
+          <option value="01">Ocak</option>
+          <option value="02">Şubat</option>
+          <option value="03">Mart</option>
+          <option value="04">Nisan</option>
+          <option value="05">Mayıs</option>
+          <option value="06">Haziran</option>
+          <option value="07">Temmuz</option>
+          <option value="08">Ağustos</option>
+          <option value="09">Eylül</option>
+          <option value="10">Ekim</option>
+          <option value="11">Kasım</option>
+          <option value="12">Aralık</option>
+        </select>
+        <select id="yearSelect" onchange="onYearMonthChange()" class="bg-slate-800 text-white border border-slate-700 rounded-lg px-2 py-1.5 font-semibold focus:outline-none"></select>
+        <button type="button" onclick="stepMonth(1)" class="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700 active:scale-95 font-bold" title="Sonraki Ay">▶</button>
+      </div>
+      <button onclick="openBudgetModal()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-sky-300 font-semibold hover:bg-slate-700 whitespace-nowrap">
+        ✏️ Kasa / Limit
       </button>
     </div>
   </header>
@@ -320,10 +330,16 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // Default Period Presets based on Karakan Family Financial Analysis
-    const DEFAULT_PERIODS = {
+    const MONTH_NAMES = {
+      "01": "Ocak", "02": "Şubat", "03": "Mart", "04": "Nisan",
+      "05": "Mayıs", "06": "Haziran", "07": "Temmuz", "08": "Ağustos",
+      "09": "Eylül", "10": "Ekim", "11": "Kasım", "12": "Aralık"
+    };
+
+    // Known Preset Periods + Unlimited Dynamic Generator for Any Year/Month
+    const PRESET_PERIODS = {
       "2026-11": {
-        label: "Kasım Sonu (28 Kas – 27 Ara 2026)",
+        label: "Kasım 2026 (28 Kas – 27 Ara)",
         cashBudget: 11674.08,
         ccBudget: 0.00,
         fixedLoad: 38245.91,
@@ -338,7 +354,7 @@
         ]
       },
       "2026-12": {
-        label: "Aralık 2026 (Maaş: 81.000 ₺)",
+        label: "Aralık 2026",
         cashBudget: 15000.00,
         ccBudget: 5000.00,
         fixedLoad: 38245.91,
@@ -352,7 +368,7 @@
         ]
       },
       "2027-01": {
-        label: "Ocak 2027 (Maaş: 81.000 ₺)",
+        label: "Ocak 2027",
         cashBudget: 15000.00,
         ccBudget: 5000.00,
         fixedLoad: 38245.91,
@@ -364,7 +380,7 @@
         ]
       },
       "2027-02": {
-        label: "Şubat 2027 (Maaş: 81.000 ₺)",
+        label: "Şubat 2027",
         cashBudget: 15000.00,
         ccBudget: 5000.00,
         fixedLoad: 38245.91,
@@ -376,7 +392,7 @@
         ]
       },
       "2027-03": {
-        label: "Mart 2027 (Maaş: 81.000 ₺)",
+        label: "Mart 2027",
         cashBudget: 15000.00,
         ccBudget: 5000.00,
         fixedLoad: 38245.91,
@@ -398,20 +414,62 @@
           { name: "Diğer Kart Taksitleri", amount: 14722.47, note: "Oto İsmail, Hepiyi, IKEA" },
           { name: "Faturalar & Prime", amount: 4023.55, note: "Vadesiz otomatik talimat" }
         ]
-      },
-      "2027-05": {
-        label: "Mayıs 2027 (Dyson Bitti!)",
-        cashBudget: 18000.00,
-        ccBudget: 6000.00,
-        fixedLoad: 32246.02,
-        fixedItems: [
-          { name: "Okul Gideri (Sabit)", amount: 13500.00, note: "Her ay sabit" },
-          { name: "Dyson.com.tr", amount: 0.00, note: "Tamamlandı (5.999,89 ₺ tasarruf)" },
-          { name: "Kalan Kart Taksitleri", amount: 14722.47, note: "Oto İsmail, Hepiyi, IKEA" },
-          { name: "Faturalar & Prime", amount: 4023.55, note: "Vadesiz otomatik talimat" }
-        ]
       }
     };
+
+    function getDefaultPeriodConfig(periodId) {
+      if (PRESET_PERIODS[periodId]) return PRESET_PERIODS[periodId];
+      const [yr, mo] = periodId.split("-");
+      const label = `${MONTH_NAMES[mo] || mo} ${yr}`;
+      // May 2027 and beyond: Dyson installment completed
+      if (periodId >= "2027-05") {
+        return {
+          label,
+          cashBudget: 18000.00,
+          ccBudget: 6000.00,
+          fixedLoad: 32246.02,
+          fixedItems: [
+            { name: "Okul Gideri (Sabit)", amount: 13500.00, note: "Her ay sabit" },
+            { name: "Dyson.com.tr", amount: 0.00, note: "Tamamlandı (5.999,89 ₺ tasarruf)" },
+            { name: "Kalan Kart Taksitleri", amount: 14722.47, note: "Oto İsmail, Hepiyi, IKEA" },
+            { name: "Faturalar & Prime", amount: 4023.55, note: "Vadesiz otomatik talimat" }
+          ]
+        };
+      }
+      return {
+        label,
+        cashBudget: 15000.00,
+        ccBudget: 5000.00,
+        fixedLoad: 38245.91,
+        fixedItems: [
+          { name: "Okul Gideri (Sabit)", amount: 13500.00, note: "Her ay sabit" },
+          { name: "Kart Taksitleri", amount: 20722.36, note: "Dyson, Oto İsmail, Hepiyi, IKEA" },
+          { name: "Faturalar & Prime", amount: 4023.55, note: "Vadesiz otomatik talimat" }
+        ]
+      };
+    }
+
+    // Populate Year Selector dynamically (2025 to 2040, auto-expands if stepped beyond)
+    function initYearSelect(selectedYear) {
+      const yearSel = document.getElementById("yearSelect");
+      const targetY = Number(selectedYear);
+      const minY = Math.min(2025, targetY - 1);
+      const maxY = Math.max(2040, targetY + 2);
+      yearSel.innerHTML = "";
+      for (let y = minY; y <= maxY; y++) {
+        const opt = document.createElement("option");
+        opt.value = String(y);
+        opt.textContent = String(y);
+        yearSel.appendChild(opt);
+      }
+      yearSel.value = String(targetY);
+    }
+
+    function syncCalendarDropdowns(periodId) {
+      const [yr, mo] = periodId.split("-");
+      initYearSelect(yr);
+      document.getElementById("monthSelect").value = mo;
+    }
 
     // App State
     let state = {
@@ -492,7 +550,7 @@
         if (snap.exists()) {
           state.periodConfig = snap.data();
         } else {
-          const def = DEFAULT_PERIODS[periodId] || DEFAULT_PERIODS["2026-11"];
+          const def = getDefaultPeriodConfig(periodId);
           state.periodConfig = def;
           await setDoc(periodDocRef, def);
         }
@@ -514,7 +572,7 @@
     }
 
     window.renderAll = function() {
-      const cfg = state.periodConfig || DEFAULT_PERIODS[state.period];
+      const cfg = state.periodConfig || getDefaultPeriodConfig(state.period);
       const txs = state.transactions || [];
 
       const cashBudget = Number(cfg.cashBudget || 0);
@@ -719,9 +777,30 @@
       await deleteDoc(doc(db, "rooms", roomId, "periods", state.period, "transactions", txId));
     };
 
-    window.changePeriod = function() {
-      state.period = document.getElementById("periodSelect").value;
+    window.onYearMonthChange = function() {
+      const yr = document.getElementById("yearSelect").value;
+      const mo = document.getElementById("monthSelect").value;
+      state.period = `${yr}-${mo}`;
       localStorage.setItem("kb_period", state.period);
+      state.periodConfig = null;
+      state.transactions = [];
+      renderAll();
+      subscribeToCloud();
+    };
+
+    window.stepMonth = function(delta) {
+      const [yrStr, moStr] = state.period.split("-");
+      let yr = Number(yrStr);
+      let mo = Number(moStr) + delta;
+      if (mo > 12) { mo = 1; yr += 1; }
+      if (mo < 1) { mo = 12; yr -= 1; }
+      const nextPeriod = `${yr}-${String(mo).padStart(2, "0")}`;
+      state.period = nextPeriod;
+      localStorage.setItem("kb_period", state.period);
+      syncCalendarDropdowns(nextPeriod);
+      state.periodConfig = null;
+      state.transactions = [];
+      renderAll();
       subscribeToCloud();
     };
 
@@ -744,8 +823,10 @@
     };
 
     window.openBudgetModal = function() {
-      const cfg = state.periodConfig || DEFAULT_PERIODS[state.period];
-      document.getElementById("modalPeriodLabel").textContent = `${cfg.label} dönemi için nakit ve kredi kartı limitlerini güncelleyin:`;
+      const cfg = state.periodConfig || getDefaultPeriodConfig(state.period);
+      const [yr, mo] = state.period.split("-");
+      const titleLabel = cfg.label || `${MONTH_NAMES[mo] || mo} ${yr}`;
+      document.getElementById("modalPeriodLabel").textContent = `${titleLabel} dönemi için nakit ve kredi kartı limitlerini güncelleyin:`;
       document.getElementById("inputCashBudget").value = cfg.cashBudget;
       document.getElementById("inputCcBudget").value = cfg.ccBudget;
       document.getElementById("inputFixedLoad").value = cfg.fixedLoad;
@@ -765,7 +846,7 @@
 
       const roomId = state.roomCode.trim().toUpperCase();
       const periodDocRef = doc(db, "rooms", roomId, "periods", state.period);
-      const updated = { ...(state.periodConfig || DEFAULT_PERIODS[state.period]), cashBudget, ccBudget, fixedLoad };
+      const updated = { ...(state.periodConfig || getDefaultPeriodConfig(state.period)), cashBudget, ccBudget, fixedLoad };
 
       await setDoc(periodDocRef, updated);
       closeBudgetModal();
@@ -794,7 +875,7 @@
     };
 
     // Initialize Auth & App
-    document.getElementById("periodSelect").value = state.period;
+    syncCalendarDropdowns(state.period);
     updateUserUI();
 
     signInAnonymously(auth).catch((err) => {
