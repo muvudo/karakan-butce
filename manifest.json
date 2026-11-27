@@ -1,0 +1,17 @@
+{
+  "name": "Karakan Aile Bütçesi",
+  "short_name": "Karakan Bütçe",
+  "start_url": "/karakan-butce/",
+  "scope": "/karakan-butce/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
