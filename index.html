@@ -7,52 +7,100 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Karakan Bütçe" />
-  <title>Karakan Aile Bütçesi — Ortak Ev Ekonomisi</title>
+  <title>Karakan Bütçe PRO — Ortak Ev Ekonomisi</title>
   <link rel="icon" type="image/png" href="icon.png" />
   <link rel="apple-touch-icon" href="icon.png" />
   <link rel="manifest" href="manifest.json" />
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
-    body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; color: #0f172a; -webkit-tap-highlight-color: transparent; }
-    .card { background: #ffffff; border-radius: 16px; box-shadow: 0 1px 3px rgba(15,23,42,0.06), 0 1px 2px rgba(15,23,42,0.04); border: 1px solid #e2e8f0; }
-    .tab-active { color: #0f172a; border-bottom: 2.5px solid #0284c7; font-weight: 700; }
-    .tab-inactive { color: #64748b; font-weight: 500; }
+    :root {
+      --bg-page: #f1f5f9;
+      --bg-card: #ffffff;
+      --bg-soft: #f8fafc;
+      --border-card: #e2e8f0;
+      --text-main: #0f172a;
+      --text-sub: #64748b;
+    }
+    html.dark {
+      --bg-page: #090d16;
+      --bg-card: #111827;
+      --bg-soft: #1e293b;
+      --border-card: #1f2937;
+      --text-main: #f8fafc;
+      --text-sub: #94a3b8;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      -webkit-tap-highlight-color: transparent;
+      transition: background-color 0.2s, color 0.2s;
+    }
+    .card {
+      background: var(--bg-card);
+      border-radius: 18px;
+      box-shadow: 0 2px 8px rgba(15,23,42,0.05);
+      border: 1px solid var(--border-card);
+    }
+    .soft-box {
+      background: var(--bg-soft);
+      border: 1px solid var(--border-card);
+    }
+    .tab-active {
+      color: #0284c7;
+      border-bottom: 2.5px solid #0284c7;
+      font-weight: 800;
+    }
+    .tab-inactive {
+      color: var(--text-sub);
+      font-weight: 600;
+    }
     input, select { font-size: 16px !important; }
+    html.dark input, html.dark select {
+      background-color: #1e293b !important;
+      color: #f8fafc !important;
+      border-color: #334155 !important;
+    }
+    .privacy-blur .money-val {
+      filter: blur(6px);
+      user-select: none;
+    }
   </style>
 </head>
-<body class="pb-24">
+<body class="pb-28">
 
   <!-- Top Header -->
-  <header class="bg-slate-900 text-white sticky top-0 z-30 shadow-md">
-    <div class="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
-      <div>
-        <div class="flex items-center gap-2">
-          <span class="text-base font-extrabold tracking-tight">Karakan Bütçe</span>
-          <span id="syncBadge" class="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30">
-            <span id="syncDot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-            <span id="syncText">Bağlanıyor...</span>
+  <header class="bg-slate-950 text-white sticky top-0 z-30 shadow-lg border-b border-slate-800">
+    <div class="max-w-lg mx-auto px-4 py-3 flex items-center justify-between gap-2">
+      <div class="min-w-0">
+        <div class="flex items-center gap-1.5">
+          <span class="text-base font-black tracking-tight">Karakan Bütçe</span>
+          <span class="text-[10px] font-black px-1.5 py-0.5 rounded bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950">PRO</span>
+          <span id="syncBadge" class="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30">
+            <span id="syncDot" class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+            <span id="syncText">Bağlanıyor</span>
           </span>
         </div>
-        <p class="text-[11px] text-slate-400 mt-0.5" id="roomSubtitle">Oda: KARAKAN-2026 • Anlık Ortak Kasa</p>
+        <p class="text-[11px] text-slate-400 mt-0.5 truncate" id="roomSubtitle">Oda: KARAKAN-2026 • Ortak Kasa</p>
       </div>
 
-      <div class="flex items-center gap-2">
-        <button id="userToggleBtn" onclick="toggleUser()" class="px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 active:scale-95 transition text-xs font-bold flex items-center gap-1.5 shadow">
+      <div class="flex items-center gap-1.5">
+        <button onclick="togglePrivacy()" id="privacyBtn" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs" title="Bakiyeleri Gizle/Göster">👁️</button>
+        <button onclick="toggleDarkMode()" id="darkBtn" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs" title="Karanlık Mod">🌙</button>
+        <button id="userToggleBtn" onclick="toggleUser()" class="px-2.5 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 active:scale-95 transition text-xs font-bold flex items-center gap-1 shadow">
           <span id="userAvatar">👨🏻</span>
           <span id="activeUserLabel">Gürkan</span>
         </button>
-        <button onclick="openSettings()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300" title="Ayarlar">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-        </button>
+        <button onclick="openSettings()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300" title="Ayarlar">⚙️</button>
       </div>
     </div>
 
     <!-- Unlimited Year / Month Calendar Switcher -->
     <div class="max-w-lg mx-auto px-4 pb-2.5 flex items-center justify-between gap-1.5 text-xs">
       <div class="flex items-center gap-1 flex-1">
-        <button type="button" onclick="stepMonth(-1)" class="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700 active:scale-95 font-bold" title="Önceki Ay">◀</button>
-        <select id="monthSelect" onchange="onYearMonthChange()" class="bg-slate-800 text-white border border-slate-700 rounded-lg px-2 py-1.5 font-semibold focus:outline-none flex-1 min-w-0">
+        <button type="button" onclick="stepMonth(-1)" class="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700 active:scale-95 font-bold">◀</button>
+        <select id="monthSelect" onchange="onYearMonthChange()" class="!bg-slate-800 !text-white !border-slate-700 rounded-lg px-2 py-1.5 font-semibold focus:outline-none flex-1 min-w-0">
           <option value="01">Ocak</option>
           <option value="02">Şubat</option>
           <option value="03">Mart</option>
@@ -66,24 +114,31 @@
           <option value="11">Kasım</option>
           <option value="12">Aralık</option>
         </select>
-        <select id="yearSelect" onchange="onYearMonthChange()" class="bg-slate-800 text-white border border-slate-700 rounded-lg px-2 py-1.5 font-semibold focus:outline-none"></select>
-        <button type="button" onclick="stepMonth(1)" class="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700 active:scale-95 font-bold" title="Sonraki Ay">▶</button>
+        <select id="yearSelect" onchange="onYearMonthChange()" class="!bg-slate-800 !text-white !border-slate-700 rounded-lg px-2 py-1.5 font-semibold focus:outline-none"></select>
+        <button type="button" onclick="stepMonth(1)" class="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700 active:scale-95 font-bold">▶</button>
       </div>
+      <button onclick="openIncomeModal()" class="px-2.5 py-1.5 rounded-lg bg-emerald-600/90 hover:bg-emerald-500 text-white font-bold whitespace-nowrap shadow-sm">
+        + Gelir
+      </button>
       <button onclick="openBudgetModal()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-sky-300 font-semibold hover:bg-slate-700 whitespace-nowrap">
-        ✏️ Kasa / Limit
+        ✏️ Limit
       </button>
     </div>
   </header>
 
   <main class="max-w-lg mx-auto px-4 pt-4 space-y-4">
 
-    <!-- Smart Savings Alert Banner -->
-    <div id="alertBox" class="card p-3.5 border-l-4 border-l-emerald-500 bg-emerald-50/70">
+    <!-- Smart Financial Advisor & Pace Banner -->
+    <div id="alertBox" class="card p-3.5 border-l-4 border-l-emerald-500 bg-emerald-50/70 dark:bg-emerald-950/30">
       <div class="flex items-start gap-2.5">
         <span id="alertIcon" class="text-lg">💡</span>
-        <div class="text-xs leading-relaxed">
-          <p id="alertTitle" class="font-bold text-slate-900">Tasarruf Durumu: Dengeli İlerliyorsunuz</p>
-          <p id="alertDesc" class="text-slate-600 mt-0.5">Haftalık limitinizin içinde kalarak ay sonunda birikim hedefinizi koruyabilirsiniz.</p>
+        <div class="text-xs leading-relaxed flex-1">
+          <p id="alertTitle" class="font-bold">Tasarruf Durumu: Dengeli İlerliyorsunuz</p>
+          <p id="alertDesc" class="opacity-80 mt-0.5">Haftalık limitinizin içinde kalarak ay sonunda birikim hedefinizi koruyabilirsiniz.</p>
+          <div class="mt-2 pt-2 border-t border-black/5 dark:border-white/10 flex justify-between text-[11px] font-semibold">
+            <span id="paceDailyInfo">Günlük Harcama Hızı: 0,00 ₺/gün</span>
+            <span id="paceForecastInfo" class="money-val">Ay Sonu Tahmini: +0,00 ₺</span>
+          </div>
         </div>
       </div>
     </div>
@@ -92,28 +147,28 @@
     <div class="grid grid-cols-2 gap-3">
       <div class="card p-3.5">
         <div class="flex items-center justify-between">
-          <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">Nakit / Hesap</span>
-          <span class="text-xs text-slate-400">Kalan</span>
+          <span class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 bg-emerald-50 dark:bg-emerald-950 dark:text-emerald-300 px-2 py-0.5 rounded-md">Nakit Kasa</span>
+          <span class="text-[11px] opacity-60">Kalan</span>
         </div>
-        <div id="cashRemainingVal" class="text-xl font-extrabold text-slate-900 mt-2">11.674,08 ₺</div>
-        <div class="text-[11px] text-slate-500 mt-1">
-          Bütçe: <span id="cashTotalVal" class="font-semibold">11.674,08 ₺</span>
+        <div id="cashRemainingVal" class="text-xl font-black mt-2 money-val">11.674,08 ₺</div>
+        <div class="text-[11px] opacity-70 mt-1">
+          Toplam: <span id="cashTotalVal" class="font-bold money-val">11.674,08 ₺</span>
         </div>
-        <div class="w-full bg-slate-100 h-2 rounded-full mt-2 overflow-hidden">
+        <div class="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full mt-2 overflow-hidden">
           <div id="cashProgressBar" class="bg-emerald-500 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
         </div>
       </div>
 
       <div class="card p-3.5">
         <div class="flex items-center justify-between">
-          <span class="text-[11px] font-bold uppercase tracking-wider text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md">Kredi Kartı</span>
-          <span class="text-xs text-slate-400">Güvenli Limit</span>
+          <span class="text-[10px] font-extrabold uppercase tracking-wider text-sky-700 bg-sky-50 dark:bg-sky-950 dark:text-sky-300 px-2 py-0.5 rounded-md">Kredi Kartı</span>
+          <span class="text-[11px] opacity-60">Limit</span>
         </div>
-        <div id="ccRemainingVal" class="text-xl font-extrabold text-slate-900 mt-2">0,00 ₺</div>
-        <div class="text-[11px] text-slate-500 mt-1">
-          Tavan: <span id="ccTotalVal" class="font-semibold">0,00 ₺</span>
+        <div id="ccRemainingVal" class="text-xl font-black mt-2 money-val">0,00 ₺</div>
+        <div class="text-[11px] opacity-70 mt-1">
+          Tavan: <span id="ccTotalVal" class="font-bold money-val">0,00 ₺</span>
         </div>
-        <div class="w-full bg-slate-100 h-2 rounded-full mt-2 overflow-hidden">
+        <div class="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full mt-2 overflow-hidden">
           <div id="ccProgressBar" class="bg-sky-500 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
         </div>
       </div>
@@ -123,13 +178,13 @@
     <div class="card p-4">
       <div class="flex items-center justify-between mb-2">
         <div>
-          <h2 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+          <h2 class="text-sm font-extrabold flex items-center gap-1.5">
             <span>Haftalık Harcama Limiti</span>
-            <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200">Devirli</span>
+            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-600 dark:text-sky-300">Devirli</span>
           </h2>
-          <p class="text-[11px] text-slate-500" id="weekSubInfo">4 haftalık devirli plan • Günlük ortalama: 416,93 ₺</p>
+          <p class="text-[11px] opacity-70" id="weekSubInfo">Taban: 2.918,52 ₺/hafta</p>
         </div>
-        <select id="weekSelect" onchange="renderAll()" class="text-xs font-bold bg-slate-100 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800">
+        <select id="weekSelect" onchange="renderAll()" class="text-xs font-bold rounded-lg px-2.5 py-1.5 border">
           <option value="1">1. Hafta</option>
           <option value="2">2. Hafta</option>
           <option value="3">3. Hafta</option>
@@ -137,19 +192,19 @@
         </select>
       </div>
 
-      <div class="bg-slate-50 rounded-xl p-3 border border-slate-200/80">
+      <div class="soft-box rounded-xl p-3">
         <div class="flex justify-between items-baseline">
-          <span class="text-xs font-medium text-slate-600">Bu Hafta Kullanılabilir Limit:</span>
-          <span id="weeklyRemainingVal" class="text-lg font-extrabold text-emerald-600">2.918,52 ₺</span>
+          <span class="text-xs font-semibold opacity-75">Kullanılabilir Haftalık Hak:</span>
+          <span id="weeklyRemainingVal" class="text-lg font-black text-emerald-600 money-val">2.918,52 ₺</span>
         </div>
-        <div class="w-full bg-slate-200 h-3 rounded-full my-2 overflow-hidden">
+        <div class="w-full bg-slate-200 dark:bg-slate-700 h-3 rounded-full my-2 overflow-hidden">
           <div id="weeklyProgressBar" class="bg-emerald-500 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
         </div>
-        <div class="flex justify-between text-[11px] text-slate-500">
-          <span>Bu Hafta Harcanan: <strong id="weeklySpentVal" class="text-slate-800">0,00 ₺</strong></span>
-          <span>Devirli Tavan: <strong id="weeklyLimitVal" class="text-slate-800">2.918,52 ₺</strong></span>
+        <div class="flex justify-between text-[11px] opacity-75">
+          <span>Harcanan: <strong id="weeklySpentVal" class="money-val">0,00 ₺</strong></span>
+          <span>Devirli Tavan: <strong id="weeklyLimitVal" class="money-val">2.918,52 ₺</strong></span>
         </div>
-        <p id="rolloverNote" class="text-[10px] text-sky-700 font-medium mt-1.5 hidden"></p>
+        <p id="rolloverNote" class="text-[10px] font-bold mt-1.5 hidden"></p>
       </div>
 
       <div class="grid grid-cols-4 gap-2 mt-3 text-center" id="fourWeeksMini"></div>
@@ -157,39 +212,39 @@
 
     <!-- Quick Add Expense Form -->
     <div class="card p-4">
-      <h2 class="text-sm font-bold text-slate-900 mb-2.5 flex items-center justify-between">
+      <h2 class="text-sm font-extrabold mb-2.5 flex items-center justify-between">
         <span>➕ Hızlı Harcama Ekle</span>
-        <span class="text-[11px] font-normal text-slate-400">Anında eşinizin telefonuna düşer</span>
+        <span class="text-[11px] font-normal opacity-60">Anında eşinizin telefonuna düşer</span>
       </h2>
 
       <!-- Quick Presets -->
       <div class="flex gap-1.5 overflow-x-auto pb-2.5 mb-2 text-[11px]">
-        <button type="button" onclick="applyQuickPreset('Market & Gıda', 'Market alışverişi', 'nakit')" class="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-semibold whitespace-nowrap active:scale-95">🛒 Market</button>
-        <button type="button" onclick="applyQuickPreset('Akaryakıt & Ulaşım', 'Akaryakıt', 'nakit')" class="px-2.5 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-semibold whitespace-nowrap active:scale-95">⛽ Yakıt</button>
-        <button type="button" onclick="applyQuickPreset('Dışarıda Yeme-İçme', 'Yemek / Kahve', 'nakit')" class="px-2.5 py-1.5 rounded-lg bg-orange-50 hover:bg-orange-100 text-orange-800 border border-orange-200 font-semibold whitespace-nowrap active:scale-95">🍽️ Yemek</button>
-        <button type="button" onclick="applyQuickPreset('Sağlık & Eczane', 'Eczane', 'nakit')" class="px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 font-semibold whitespace-nowrap active:scale-95">💊 Eczane</button>
-        <button type="button" onclick="applyQuickPreset('Çocuk & Okul', 'Okul / Kırtasiye', 'nakit')" class="px-2.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-200 font-semibold whitespace-nowrap active:scale-95">🎒 Okul</button>
+        <button type="button" onclick="applyQuickPreset('Market & Gıda', 'Market alışverişi', 'nakit')" class="px-2.5 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-bold whitespace-nowrap active:scale-95">🛒 Market</button>
+        <button type="button" onclick="applyQuickPreset('Akaryakıt & Ulaşım', 'Akaryakıt', 'nakit')" class="px-2.5 py-1.5 rounded-lg bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 font-bold whitespace-nowrap active:scale-95">⛽ Yakıt</button>
+        <button type="button" onclick="applyQuickPreset('Dışarıda Yeme-İçme', 'Yemek / Kahve', 'nakit')" class="px-2.5 py-1.5 rounded-lg bg-orange-500/15 text-orange-700 dark:text-orange-300 border border-orange-500/30 font-bold whitespace-nowrap active:scale-95">🍽️ Yemek</button>
+        <button type="button" onclick="applyQuickPreset('Sağlık & Eczane', 'Eczane', 'nakit')" class="px-2.5 py-1.5 rounded-lg bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30 font-bold whitespace-nowrap active:scale-95">💊 Eczane</button>
+        <button type="button" onclick="applyQuickPreset('Çocuk & Okul', 'Okul / Kırtasiye', 'nakit')" class="px-2.5 py-1.5 rounded-lg bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 font-bold whitespace-nowrap active:scale-95">🎒 Okul</button>
       </div>
 
       <form id="expenseForm" onsubmit="addExpense(event)" class="space-y-3">
         <div class="grid grid-cols-2 gap-2.5">
           <div>
-            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Toplam Tutar (₺)</label>
-            <input type="number" step="0.01" min="0.01" id="expAmount" required placeholder="Örn: 450" oninput="updateInstallmentPreview()" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold text-slate-900 focus:outline-none focus:border-sky-500" />
+            <label class="block text-[11px] font-bold opacity-75 mb-1">Toplam Tutar (₺)</label>
+            <input type="number" step="0.01" min="0.01" id="expAmount" required placeholder="Örn: 450" oninput="updateInstallmentPreview()" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-extrabold focus:outline-none focus:border-sky-500" />
           </div>
           <div>
-            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Ödeme Kanalı</label>
-            <select id="expMethod" onchange="onMethodChange()" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-semibold text-slate-800 bg-white focus:outline-none focus:border-sky-500">
+            <label class="block text-[11px] font-bold opacity-75 mb-1">Ödeme Kanalı</label>
+            <select id="expMethod" onchange="onMethodChange()" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-semibold focus:outline-none focus:border-sky-500">
               <option value="nakit">💵 Nakit / Banka Kartı</option>
               <option value="kk">💳 Kredi Kartı</option>
             </select>
           </div>
         </div>
 
-        <div id="installmentRow" class="hidden bg-sky-50/80 border border-sky-200 rounded-xl p-2.5 space-y-1.5">
+        <div id="installmentRow" class="hidden bg-sky-500/10 border border-sky-500/30 rounded-xl p-2.5 space-y-1.5">
           <div class="flex items-center justify-between gap-2">
-            <label class="text-[11px] font-bold text-sky-900">💳 Kredi Kartı Taksit Seçeneği:</label>
-            <select id="expInstallments" onchange="updateInstallmentPreview()" class="px-2.5 py-1.5 rounded-lg border border-sky-300 bg-white text-xs font-bold text-sky-950 focus:outline-none">
+            <label class="text-[11px] font-bold text-sky-700 dark:text-sky-300">💳 Kredi Kartı Taksit Seçeneği:</label>
+            <select id="expInstallments" onchange="updateInstallmentPreview()" class="px-2.5 py-1.5 rounded-lg border border-sky-300 text-xs font-bold focus:outline-none">
               <option value="1">Tek Çekim (Bu ay)</option>
               <option value="2">2 Taksit</option>
               <option value="3">3 Taksit</option>
@@ -199,15 +254,15 @@
               <option value="12">12 Taksit</option>
             </select>
           </div>
-          <p id="installmentPreviewText" class="text-[11px] text-sky-700 leading-snug">
+          <p id="installmentPreviewText" class="text-[11px] text-sky-700 dark:text-sky-300 leading-snug">
             Tek çekim olarak bu ayın kredi kartı limitinden düşülür.
           </p>
         </div>
 
         <div class="grid grid-cols-2 gap-2.5">
           <div>
-            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Kategori</label>
-            <select id="expCategory" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-medium text-slate-800 bg-white focus:outline-none focus:border-sky-500">
+            <label class="block text-[11px] font-bold opacity-75 mb-1">Kategori</label>
+            <select id="expCategory" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-medium focus:outline-none focus:border-sky-500">
               <option value="Market & Gıda">🛒 Market & Gıda</option>
               <option value="Akaryakıt & Ulaşım">⛽ Akaryakıt & Ulaşım</option>
               <option value="Dışarıda Yeme-İçme">🍽️ Dışarıda Yeme-İçme</option>
@@ -219,8 +274,8 @@
             </select>
           </div>
           <div>
-            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Hangi Hafta?</label>
-            <select id="expWeek" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-medium text-slate-800 bg-white focus:outline-none focus:border-sky-500">
+            <label class="block text-[11px] font-bold opacity-75 mb-1">Hangi Hafta?</label>
+            <select id="expWeek" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-medium focus:outline-none focus:border-sky-500">
               <option value="1">1. Hafta</option>
               <option value="2">2. Hafta</option>
               <option value="3">3. Hafta</option>
@@ -230,66 +285,102 @@
         </div>
 
         <div>
-          <label class="block text-[11px] font-semibold text-slate-600 mb-1">Açıklama / Mağaza (İsteğe bağlı)</label>
-          <input type="text" id="expNote" placeholder="Örn: BİM haftalık alışveriş, Kaynar Petrol..." class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm text-slate-800 focus:outline-none focus:border-sky-500" />
+          <label class="block text-[11px] font-bold opacity-75 mb-1">Açıklama / Mağaza (İsteğe bağlı)</label>
+          <input type="text" id="expNote" placeholder="Örn: BİM haftalık alışveriş, Kaynar Petrol..." class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-sky-500" />
         </div>
 
-        <button type="submit" id="submitExpBtn" class="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-[0.99] transition text-white font-bold text-sm shadow">
+        <button type="submit" id="submitExpBtn" class="w-full py-3 rounded-xl bg-sky-600 hover:bg-sky-500 active:scale-[0.99] transition text-white font-extrabold text-sm shadow">
           Harcamayı Kaydet ve Eşitle
         </button>
       </form>
     </div>
 
-    <!-- Navigation Tabs -->
+    <!-- Navigation Tabs (4 Pro Tabs) -->
     <div class="card overflow-hidden">
-      <div class="flex border-b border-slate-200 text-[11px]">
+      <div class="flex border-b border-slate-200 dark:border-slate-800 text-[11px]">
         <button id="tabTxBtn" onclick="switchTab('tx')" class="flex-1 py-3 text-center tab-active">
-          📋 Harcamalar (<span id="txCountBadge">0</span>)
+          📋 İşlemler (<span id="txCountBadge">0</span>)
+        </button>
+        <button id="tabGoalsBtn" onclick="switchTab('goals')" class="flex-1 py-3 text-center tab-inactive">
+          🎯 Hedefler
         </button>
         <button id="tabReportBtn" onclick="switchTab('report')" class="flex-1 py-3 text-center tab-inactive">
-          📊 Analiz & Yedek
+          📊 Analiz
         </button>
         <button id="tabFixedBtn" onclick="switchTab('fixed')" class="flex-1 py-3 text-center tab-inactive">
-          🔒 Sabit Giderler
+          🔒 Sabitler
         </button>
       </div>
 
-      <!-- Tab 1: Transactions List with Search & Edit -->
+      <!-- Tab 1: Transactions List -->
       <div id="tabTxPanel" class="p-3 space-y-2">
         <div class="relative">
-          <input type="text" id="txSearchInput" oninput="renderAll()" placeholder="🔍 Harcama, mağaza veya kişi ara..." class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-sky-500" />
+          <input type="text" id="txSearchInput" oninput="renderAll()" placeholder="🔍 Harcama, mağaza veya kişi ara..." class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-sky-500" />
         </div>
-        <div id="txListContainer" class="divide-y divide-slate-100 max-h-96 overflow-y-auto">
-          <div class="py-6 text-center text-xs text-slate-400">Henüz bu dönem için harcama girilmedi.</div>
+        <div id="txListContainer" class="divide-y divide-slate-100 dark:divide-slate-800 max-h-96 overflow-y-auto">
+          <div class="py-6 text-center text-xs opacity-50">Henüz bu dönem için harcama girilmedi.</div>
         </div>
       </div>
 
-      <!-- Tab 2: Category Report Chart, Excel/CSV & JSON Backup -->
+      <!-- Tab 2: Shared Savings Goals (Kumbara) -->
+      <div id="tabGoalsPanel" class="p-4 hidden space-y-3 text-xs">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="font-extrabold text-sm">Ortak Birikim Hedefleri</h3>
+            <p class="text-[11px] opacity-70">Tatil, okul, acil durum fonu veya ev hedefi</p>
+          </div>
+          <span id="goalsTotalSaved" class="font-black text-emerald-600 text-sm money-val">0,00 ₺</span>
+        </div>
+
+        <form onsubmit="addSavingsGoal(event)" class="soft-box p-3 rounded-xl space-y-2">
+          <div class="font-bold text-[11px]">➕ Yeni Birikim Hedefi Oluştur</div>
+          <div class="grid grid-cols-3 gap-2">
+            <input type="text" id="newGoalName" required placeholder="Hedef (Örn: Tatil)" class="col-span-2 px-2.5 py-2 rounded-lg border border-slate-300 text-xs" />
+            <input type="number" step="1" min="1" id="newGoalTarget" required placeholder="Hedef (₺)" class="px-2.5 py-2 rounded-lg border border-slate-300 text-xs font-bold" />
+          </div>
+          <button type="submit" class="w-full py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs">
+            Hedefi Başlat
+          </button>
+        </form>
+
+        <div id="goalsListContainer" class="space-y-2.5"></div>
+      </div>
+
+      <!-- Tab 3: Pro Analytics, WhatsApp Share, CSV & JSON -->
       <div id="tabReportPanel" class="p-4 hidden space-y-4 text-xs">
         <div class="flex items-center justify-between gap-2 flex-wrap">
           <div>
-            <h3 class="font-bold text-slate-900 text-sm">Kategori Bazlı Dağılım</h3>
-            <p class="text-[11px] text-slate-500" id="reportTotalSub">Toplam Değişken Harcama: 0,00 ₺</p>
+            <h3 class="font-extrabold text-sm">Dönem Finans Özeti</h3>
+            <p class="text-[11px] opacity-70" id="reportTotalSub">Toplam Değişken Harcama: 0,00 ₺</p>
           </div>
-          <button type="button" onclick="exportToCSV()" class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-[11px] flex items-center gap-1.5 shadow-sm">
-            📥 Excel / CSV
-          </button>
+          <div class="flex gap-1.5">
+            <button type="button" onclick="shareWhatsAppSummary()" class="px-2.5 py-2 rounded-xl bg-green-600 hover:bg-green-500 text-white font-bold text-[11px] shadow-sm">
+              💬 WhatsApp Özet
+            </button>
+            <button type="button" onclick="exportToCSV()" class="px-2.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-[11px] shadow-sm">
+              📥 Excel
+            </button>
+          </div>
         </div>
 
+        <!-- Total Outflow Summary -->
+        <div class="grid grid-cols-3 gap-2 text-center" id="outflowBreakdown"></div>
+
+        <!-- Couple Ratio -->
         <div class="grid grid-cols-2 gap-2" id="userSummaryBoxes"></div>
 
         <div id="categoryChartBars" class="space-y-2.5 pt-1">
-          <div class="py-6 text-center text-slate-400">Grafik oluşması için harcama girin.</div>
+          <div class="py-6 text-center opacity-50">Grafik oluşması için harcama girin.</div>
         </div>
 
         <!-- JSON Backup & Restore -->
-        <div class="pt-3 border-t border-slate-200 space-y-2">
-          <div class="font-bold text-slate-800 text-[11px]">💾 Dönem Yedeği (JSON)</div>
+        <div class="pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2">
+          <div class="font-bold text-[11px]">💾 Dönem Yedeği (JSON)</div>
           <div class="grid grid-cols-2 gap-2">
             <button type="button" onclick="exportPeriodJSON()" class="py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-[11px]">
               ⬇️ Tam Yedek İndir
             </button>
-            <label class="py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 font-bold text-[11px] text-center cursor-pointer">
+            <label class="py-2 px-3 rounded-xl soft-box font-bold text-[11px] text-center cursor-pointer">
               ⬆️ Yedekten Yükle
               <input type="file" accept=".json" onchange="importPeriodJSON(event)" class="hidden" />
             </label>
@@ -297,52 +388,81 @@
         </div>
       </div>
 
-      <!-- Tab 3: Fixed Commitments & Installments -->
+      <!-- Tab 4: Fixed Commitments & Installments -->
       <div id="tabFixedPanel" class="p-4 hidden space-y-3 text-xs">
-        <div class="flex justify-between items-center p-2.5 rounded-xl bg-slate-50 border border-slate-200">
-          <span class="font-bold text-slate-700">Aylık Zorunlu Sabit Yük Toplamı</span>
-          <span id="fixedTotalDisplay" class="font-extrabold text-sm text-rose-600">38.245,91 ₺</span>
+        <div class="flex justify-between items-center p-2.5 rounded-xl soft-box">
+          <span class="font-bold">Aylık Zorunlu Sabit Yük Toplamı</span>
+          <span id="fixedTotalDisplay" class="font-black text-sm text-rose-600 money-val">38.245,91 ₺</span>
         </div>
 
-        <form onsubmit="addFixedItem(event)" class="p-3 rounded-xl bg-slate-50/80 border border-slate-200/80 space-y-2">
-          <div class="font-bold text-[11px] text-slate-700">➕ Bu Aya Yeni Sabit Gider / Taksit Ekle</div>
+        <form onsubmit="addFixedItem(event)" class="soft-box p-3 rounded-xl space-y-2">
+          <div class="font-bold text-[11px]">➕ Bu Aya Yeni Sabit Gider / Taksit Ekle</div>
           <div class="grid grid-cols-3 gap-2">
-            <input type="text" id="newFixedName" required placeholder="Gider adı (Örn: Aidat)" class="col-span-2 px-2.5 py-2 rounded-lg border border-slate-300 text-xs bg-white focus:outline-none focus:border-sky-500" />
-            <input type="number" step="0.01" min="0.01" id="newFixedAmount" required placeholder="Tutar (₺)" class="px-2.5 py-2 rounded-lg border border-slate-300 text-xs font-bold bg-white focus:outline-none focus:border-sky-500" />
+            <input type="text" id="newFixedName" required placeholder="Gider adı (Örn: Aidat)" class="col-span-2 px-2.5 py-2 rounded-lg border border-slate-300 text-xs" />
+            <input type="number" step="0.01" min="0.01" id="newFixedAmount" required placeholder="Tutar (₺)" class="px-2.5 py-2 rounded-lg border border-slate-300 text-xs font-bold" />
           </div>
           <div class="flex gap-2">
-            <input type="text" id="newFixedNote" placeholder="Not (İsteğe bağlı, örn: 2/6 taksit)" class="flex-1 px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white focus:outline-none focus:border-sky-500" />
-            <button type="submit" class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs whitespace-nowrap">
+            <input type="text" id="newFixedNote" placeholder="Not (İsteğe bağlı, örn: 2/6 taksit)" class="flex-1 px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs" />
+            <button type="submit" class="px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs whitespace-nowrap">
               Ekle
             </button>
           </div>
         </form>
 
         <div id="fixedItemsList" class="space-y-2"></div>
-        <p class="text-[11px] text-slate-500 leading-relaxed pt-1">
-          * Listeden kalem eklediğinizde veya sildiğinizde aylık sabit yük toplamı otomatik güncellenir ve eşinizin telefonuna yansır.
-        </p>
       </div>
     </div>
 
   </main>
 
-  <!-- Modal: Edit Transaction -->
-  <div id="editTxModal" class="fixed inset-0 bg-slate-900/60 z-50 hidden items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-3.5 shadow-xl">
+  <!-- Modal: Add Income / Extra Budget -->
+  <div id="incomeModal" class="fixed inset-0 bg-slate-950/70 z-50 hidden items-center justify-center p-4">
+    <div class="card max-w-md w-full p-5 space-y-3.5 shadow-2xl">
       <div class="flex justify-between items-center">
-        <h3 class="font-bold text-base text-slate-900">Harcamayı Düzenle</h3>
-        <button onclick="closeEditTxModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+        <h3 class="font-extrabold text-base">💵 Gelir / Ek Bütçe Ekle</h3>
+        <button onclick="closeIncomeModal()" class="opacity-60 hover:opacity-100 text-lg font-bold">✕</button>
+      </div>
+      <p class="text-xs opacity-70">Ay ortasında gelen ek gelir, prim veya iadeyi seçili kasa tavanına ekler:</p>
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold mb-1">Eklenecek Tutar (₺)</label>
+          <input type="number" step="0.01" min="0.01" id="incomeAmount" placeholder="Örn: 2500" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-extrabold" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold mb-1">Hangi Kasaya Eklensin?</label>
+          <select id="incomeTarget" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-semibold">
+            <option value="cash">💵 Nakit / Hesap Bütçesine Ekle</option>
+            <option value="cc">💳 Kredi Kartı Limitine Ekle</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold mb-1">Açıklama (İsteğe bağlı)</label>
+          <input type="text" id="incomeNote" placeholder="Örn: Ek ödeme, İade..." class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+        </div>
+      </div>
+      <div class="flex gap-2 pt-2">
+        <button onclick="closeIncomeModal()" class="flex-1 py-2.5 rounded-xl border border-slate-300 text-xs font-bold">İptal</button>
+        <button onclick="saveIncome()" class="flex-1 py-2.5 rounded-xl bg-emerald-600 text-white text-xs font-bold shadow">Kasaya Ekle</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Edit Transaction -->
+  <div id="editTxModal" class="fixed inset-0 bg-slate-950/70 z-50 hidden items-center justify-center p-4">
+    <div class="card max-w-md w-full p-5 space-y-3.5 shadow-2xl">
+      <div class="flex justify-between items-center">
+        <h3 class="font-extrabold text-base">Harcamayı Düzenle</h3>
+        <button onclick="closeEditTxModal()" class="opacity-60 hover:opacity-100 text-lg font-bold">✕</button>
       </div>
       <input type="hidden" id="editTxId" />
       <div class="grid grid-cols-2 gap-2.5">
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Tutar (₺)</label>
+          <label class="block text-xs font-bold mb-1">Tutar (₺)</label>
           <input type="number" step="0.01" min="0.01" id="editTxAmount" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
         </div>
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Ödeme Kanalı</label>
-          <select id="editTxMethod" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-semibold bg-white">
+          <label class="block text-xs font-bold mb-1">Ödeme Kanalı</label>
+          <select id="editTxMethod" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-semibold">
             <option value="nakit">💵 Nakit / Banka</option>
             <option value="kk">💳 Kredi Kartı</option>
           </select>
@@ -350,8 +470,8 @@
       </div>
       <div class="grid grid-cols-2 gap-2.5">
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Kategori</label>
-          <select id="editTxCategory" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-medium bg-white">
+          <label class="block text-xs font-bold mb-1">Kategori</label>
+          <select id="editTxCategory" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-medium">
             <option value="Market & Gıda">🛒 Market & Gıda</option>
             <option value="Akaryakıt & Ulaşım">⛽ Akaryakıt & Ulaşım</option>
             <option value="Dışarıda Yeme-İçme">🍽️ Dışarıda Yeme-İçme</option>
@@ -363,8 +483,8 @@
           </select>
         </div>
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Hafta</label>
-          <select id="editTxWeek" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-medium bg-white">
+          <label class="block text-xs font-bold mb-1">Hafta</label>
+          <select id="editTxWeek" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-medium">
             <option value="1">1. Hafta</option>
             <option value="2">2. Hafta</option>
             <option value="3">3. Hafta</option>
@@ -373,79 +493,87 @@
         </div>
       </div>
       <div>
-        <label class="block text-xs font-bold text-slate-700 mb-1">Açıklama / Mağaza</label>
+        <label class="block text-xs font-bold mb-1">Açıklama / Mağaza</label>
         <input type="text" id="editTxNote" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
       </div>
       <div class="flex gap-2 pt-2">
-        <button onclick="closeEditTxModal()" class="flex-1 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-600">İptal</button>
+        <button onclick="closeEditTxModal()" class="flex-1 py-2.5 rounded-xl border border-slate-300 text-xs font-bold">İptal</button>
         <button onclick="saveEditedTx()" class="flex-1 py-2.5 rounded-xl bg-sky-600 text-white text-xs font-bold shadow">Değişiklikleri Kaydet</button>
       </div>
     </div>
   </div>
 
   <!-- Modal: Period Cash & Limit Settings -->
-  <div id="budgetModal" class="fixed inset-0 bg-slate-900/60 z-50 hidden items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-4 shadow-xl">
+  <div id="budgetModal" class="fixed inset-0 bg-slate-950/70 z-50 hidden items-center justify-center p-4">
+    <div class="card max-w-md w-full p-5 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center">
-        <h3 class="font-bold text-base text-slate-900">Dönem Kasa ve Limit Ayarı</h3>
-        <button onclick="closeBudgetModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+        <h3 class="font-extrabold text-base">Dönem Kasa ve Limit Ayarı</h3>
+        <button onclick="closeBudgetModal()" class="opacity-60 hover:opacity-100 text-lg font-bold">✕</button>
       </div>
-      <p class="text-xs text-slate-500" id="modalPeriodLabel">Seçili dönem için nakit ve kredi kartı harcama tavanlarını belirleyin:</p>
+      <p class="text-xs opacity-70" id="modalPeriodLabel">Seçili dönem için nakit ve kredi kartı harcama tavanlarını belirleyin:</p>
 
       <div class="space-y-3">
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Bu Ay Nakit / Banka Kartı Bütçesi (₺)</label>
+          <label class="block text-xs font-bold mb-1">Bu Ay Nakit / Banka Kartı Bütçesi (₺)</label>
           <input type="number" step="0.01" id="inputCashBudget" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold" />
         </div>
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Bu Ay Kredi Kartı Ekstra Harcama Tavanı (₺)</label>
+          <label class="block text-xs font-bold mb-1">Bu Ay Kredi Kartı Ekstra Harcama Tavanı (₺)</label>
           <input type="number" step="0.01" id="inputCcBudget" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold" />
         </div>
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Aylık Sabit Gider & Taksit Yükü (₺)</label>
+          <label class="block text-xs font-bold mb-1">Aylık Sabit Gider & Taksit Yükü (₺)</label>
           <input type="number" step="0.01" id="inputFixedLoad" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold" />
         </div>
       </div>
 
       <div class="flex gap-2 pt-2">
-        <button onclick="closeBudgetModal()" class="flex-1 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-600">İptal</button>
+        <button onclick="closeBudgetModal()" class="flex-1 py-2.5 rounded-xl border border-slate-300 text-xs font-bold">İptal</button>
         <button onclick="savePeriodBudget()" class="flex-1 py-2.5 rounded-xl bg-sky-600 text-white text-xs font-bold shadow">Kaydet ve Eşitle</button>
       </div>
     </div>
   </div>
 
-  <!-- Modal: Room / Cloud Settings -->
-  <div id="settingsModal" class="fixed inset-0 bg-slate-900/60 z-50 hidden items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-4 shadow-xl">
+  <!-- Modal: Room / Cloud / Reminder Settings -->
+  <div id="settingsModal" class="fixed inset-0 bg-slate-950/70 z-50 hidden items-center justify-center p-4">
+    <div class="card max-w-md w-full p-5 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center">
-        <h3 class="font-bold text-base text-slate-900">İki Telefon Eşitleme & Profil</h3>
-        <button onclick="closeSettings()" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+        <h3 class="font-extrabold text-base">İki Telefon Eşitleme & Ayarlar</h3>
+        <button onclick="closeSettings()" class="opacity-60 hover:opacity-100 text-lg font-bold">✕</button>
       </div>
 
       <div class="space-y-3">
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Bu Telefondaki Kullanıcı</label>
+          <label class="block text-xs font-bold mb-1">Bu Telefondaki Kullanıcı</label>
           <div class="grid grid-cols-2 gap-2">
             <button type="button" onclick="setActiveUser('Gürkan')" id="btnPickGurkan" class="py-2.5 rounded-xl border-2 border-sky-600 bg-sky-50 text-sky-900 font-bold text-xs">👨🏻 Gürkan</button>
-            <button type="button" onclick="setActiveUser('Nedime')" id="btnPickNedime" class="py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs">👩🏻 Nedime</button>
+            <button type="button" onclick="setActiveUser('Nedime')" id="btnPickNedime" class="py-2.5 rounded-xl border border-slate-300 font-bold text-xs">👩🏻 Nedime</button>
           </div>
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Ortak Aile Odası Kodu (İki telefonda aynı olmalı)</label>
+          <label class="block text-xs font-bold mb-1">Ortak Aile Odası Kodu (İki telefonda aynı olmalı)</label>
           <input type="text" id="inputRoomCode" value="KARAKAN-2026" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-mono font-bold uppercase text-sm" />
         </div>
 
-        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-600 space-y-1">
-          <p class="font-bold text-slate-800">✅ Bulut Bağlantısı Ön Yüklü</p>
+        <div class="soft-box p-3 rounded-xl space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold">🔔 Akşam Harcama Hatırlatıcısı</span>
+            <button type="button" onclick="requestDailyReminder()" class="px-2.5 py-1 rounded-lg bg-sky-600 text-white text-[11px] font-bold">Bildirim Aç</button>
+          </div>
+          <p class="text-[11px] opacity-70">Uygulama açıkken veya tarayıcı izin verdiğinde akşam saatlerinde hatırlatma gösterir.</p>
+        </div>
+
+        <div class="soft-box p-3 rounded-xl text-[11px] space-y-1">
+          <p class="font-bold">✅ Bulut Bağlantısı Aktif</p>
           <p>Proje: <span class="font-mono font-semibold">karakan-butce</span> (Europe / eur3)</p>
-          <p>Durum: <span id="modalConnStatus" class="font-semibold text-emerald-700">Bağlı</span></p>
+          <p>Durum: <span id="modalConnStatus" class="font-semibold text-emerald-600">Bağlı</span></p>
         </div>
       </div>
 
       <div class="flex gap-2 pt-2">
-        <button onclick="closeSettings()" class="flex-1 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-600">Kapat</button>
-        <button onclick="saveRoomSettings()" class="flex-1 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold shadow">Odayı Güncelle</button>
+        <button onclick="closeSettings()" class="flex-1 py-2.5 rounded-xl border border-slate-300 text-xs font-bold">Kapat</button>
+        <button onclick="saveRoomSettings()" class="flex-1 py-2.5 rounded-xl bg-sky-600 text-white text-xs font-bold shadow">Odayı Güncelle</button>
       </div>
     </div>
   </div>
@@ -638,32 +766,55 @@
       user: localStorage.getItem("kb_user") || "Gürkan",
       roomCode: localStorage.getItem("kb_room") || "KARAKAN-2026",
       period: localStorage.getItem("kb_period") || "2026-11",
+      dark: localStorage.getItem("kb_dark") === "1",
+      privacy: localStorage.getItem("kb_privacy") === "1",
       periodConfig: null,
       transactions: [],
+      goals: [],
       isConnected: false
     };
 
     let unsubPeriod = null;
     let unsubTx = null;
+    let unsubGoals = null;
 
     function fmtTL(num) {
       return Number(num || 0).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " ₺";
     }
 
+    function applyThemeAndPrivacy() {
+      document.documentElement.classList.toggle("dark", state.dark);
+      document.getElementById("darkBtn").textContent = state.dark ? "☀️" : "🌙";
+      document.body.classList.toggle("privacy-blur", state.privacy);
+      document.getElementById("privacyBtn").textContent = state.privacy ? "🙈" : "👁️";
+    }
+
+    window.toggleDarkMode = function() {
+      state.dark = !state.dark;
+      localStorage.setItem("kb_dark", state.dark ? "1" : "0");
+      applyThemeAndPrivacy();
+    };
+
+    window.togglePrivacy = function() {
+      state.privacy = !state.privacy;
+      localStorage.setItem("kb_privacy", state.privacy ? "1" : "0");
+      applyThemeAndPrivacy();
+    };
+
     function updateUserUI() {
       document.getElementById("activeUserLabel").textContent = state.user;
       document.getElementById("userAvatar").textContent = state.user === "Gürkan" ? "👨🏻" : "👩🏻";
-      document.getElementById("roomSubtitle").textContent = `Oda: ${state.roomCode} • Anlık Ortak Kasa`;
+      document.getElementById("roomSubtitle").textContent = `Oda: ${state.roomCode} • Ortak Kasa`;
       document.getElementById("inputRoomCode").value = state.roomCode;
 
       const btnG = document.getElementById("btnPickGurkan");
       const btnN = document.getElementById("btnPickNedime");
       if (state.user === "Gürkan") {
-        btnG.className = "py-2.5 rounded-xl border-2 border-sky-600 bg-sky-50 text-sky-900 font-bold text-xs";
-        btnN.className = "py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs";
+        btnG.className = "py-2.5 rounded-xl border-2 border-sky-600 bg-sky-500/15 text-sky-600 dark:text-sky-300 font-bold text-xs";
+        btnN.className = "py-2.5 rounded-xl border border-slate-300 font-bold text-xs opacity-75";
       } else {
-        btnN.className = "py-2.5 rounded-xl border-2 border-sky-600 bg-sky-50 text-sky-900 font-bold text-xs";
-        btnG.className = "py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs";
+        btnN.className = "py-2.5 rounded-xl border-2 border-sky-600 bg-sky-500/15 text-sky-600 dark:text-sky-300 font-bold text-xs";
+        btnG.className = "py-2.5 rounded-xl border border-slate-300 font-bold text-xs opacity-75";
       }
     }
 
@@ -717,14 +868,14 @@
       const txt = document.getElementById("syncText");
       const modalSt = document.getElementById("modalConnStatus");
       if (connected) {
-        badge.className = "inline-flex items-center gap-1.5 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30";
-        dot.className = "w-2 h-2 rounded-full bg-emerald-400";
-        txt.textContent = msg || "Canlı Eşitlendi";
-        if (modalSt) { modalSt.textContent = "Canlı Bulut Bağlantısı Aktif"; modalSt.className = "font-semibold text-emerald-700"; }
+        badge.className = "inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30";
+        dot.className = "w-1.5 h-1.5 rounded-full bg-emerald-400";
+        txt.textContent = msg || "Canlı";
+        if (modalSt) { modalSt.textContent = "Canlı Bulut Bağlantısı Aktif"; modalSt.className = "font-semibold text-emerald-600"; }
       } else {
-        badge.className = "inline-flex items-center gap-1.5 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-400/30";
-        dot.className = "w-2 h-2 rounded-full bg-rose-400";
-        txt.textContent = msg || "Bağlantı Hatası";
+        badge.className = "inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-400/30";
+        dot.className = "w-1.5 h-1.5 rounded-full bg-rose-400";
+        txt.textContent = msg || "Hata";
         if (modalSt) { modalSt.textContent = msg || "Bağlantı Kurulamadı"; modalSt.className = "font-semibold text-rose-600"; }
       }
     }
@@ -732,13 +883,14 @@
     function subscribeToCloud() {
       if (unsubPeriod) unsubPeriod();
       if (unsubTx) unsubTx();
+      if (unsubGoals) unsubGoals();
 
       const roomId = state.roomCode.trim().toUpperCase();
       const periodId = state.period;
 
       const periodDocRef = doc(db, "rooms", roomId, "periods", periodId);
       unsubPeriod = onSnapshot(periodDocRef, async (snap) => {
-        setSyncStatus(true, "Canlı Eşitlendi");
+        setSyncStatus(true, "Canlı");
         if (snap.exists()) {
           state.periodConfig = snap.data();
         } else {
@@ -760,11 +912,20 @@
       }, (err) => {
         console.error(err);
       });
+
+      const goalsColRef = collection(db, "rooms", roomId, "goals");
+      unsubGoals = onSnapshot(goalsColRef, (snapshot) => {
+        state.goals = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderAll();
+      }, (err) => {
+        console.error(err);
+      });
     }
 
     window.renderAll = function() {
       const cfg = state.periodConfig || getDefaultPeriodConfig(state.period);
       const txs = state.transactions || [];
+      const goals = state.goals || [];
 
       const cashBudget = Number(cfg.cashBudget || 0);
       const ccBudget = Number(cfg.ccBudget || 0);
@@ -800,7 +961,7 @@
       document.getElementById("cashTotalVal").textContent = fmtTL(cashBudget);
       const cashRemEl = document.getElementById("cashRemainingVal");
       cashRemEl.textContent = fmtTL(cashRem);
-      cashRemEl.className = `text-xl font-extrabold mt-2 ${cashRem < 0 ? "text-rose-600" : "text-slate-900"}`;
+      cashRemEl.className = `text-xl font-black mt-2 money-val ${cashRem < 0 ? "text-rose-600" : ""}`;
 
       const cashPct = cashBudget > 0 ? Math.min(100, Math.max(0, (cashSpent / cashBudget) * 100)) : (cashSpent > 0 ? 100 : 0);
       const cashBar = document.getElementById("cashProgressBar");
@@ -810,17 +971,26 @@
       document.getElementById("ccTotalVal").textContent = fmtTL(ccBudget);
       const ccRemEl = document.getElementById("ccRemainingVal");
       ccRemEl.textContent = fmtTL(ccRem);
-      ccRemEl.className = `text-xl font-extrabold mt-2 ${ccRem < 0 ? "text-rose-600" : "text-slate-900"}`;
+      ccRemEl.className = `text-xl font-black mt-2 money-val ${ccRem < 0 ? "text-rose-600" : ""}`;
 
       const ccPct = ccBudget > 0 ? Math.min(100, Math.max(0, (ccSpent / ccBudget) * 100)) : (ccSpent > 0 ? 100 : 0);
       const ccBar = document.getElementById("ccProgressBar");
       ccBar.style.width = ccPct + "%";
       ccBar.className = `h-full rounded-full transition-all duration-300 ${ccPct >= 100 ? "bg-rose-500" : ccPct >= 80 ? "bg-amber-500" : "bg-sky-500"}`;
 
+      // Daily Pace & Forecast
+      const dayOfMonth = Math.max(1, Math.min(28, new Date().getDate()));
+      const actualDailyPace = cashSpent / dayOfMonth;
+      const projectedEndCash = cashBudget - (actualDailyPace * 28);
+      document.getElementById("paceDailyInfo").textContent = `Günlük Harcama Hızı: ${fmtTL(actualDailyPace)}/gün`;
+      const forecastEl = document.getElementById("paceForecastInfo");
+      forecastEl.textContent = `Ay Sonu Tahmini: ${projectedEndCash >= 0 ? "+" : ""}${fmtTL(projectedEndCash)}`;
+      forecastEl.className = `money-val ${projectedEndCash < 0 ? "text-rose-600" : "text-emerald-600 dark:text-emerald-400"}`;
+
       // Rollover weekly calculation
       const baseWeeklyLimit = cashBudget / 4;
       const dailyAvg = cashBudget / 28;
-      document.getElementById("weekSubInfo").textContent = `Taban: ${fmtTL(baseWeeklyLimit)}/hafta • Günlük ort: ${fmtTL(dailyAvg)}`;
+      document.getElementById("weekSubInfo").textContent = `Taban: ${fmtTL(baseWeeklyLimit)}/hafta • İdeal gün: ${fmtTL(dailyAvg)}`;
 
       const weekData = {};
       let carryOver = 0;
@@ -842,16 +1012,16 @@
       document.getElementById("weeklySpentVal").textContent = fmtTL(curW.spent);
       const wRemEl = document.getElementById("weeklyRemainingVal");
       wRemEl.textContent = fmtTL(curW.remaining);
-      wRemEl.className = `text-lg font-extrabold ${curW.remaining < 0 ? "text-rose-600" : wPct >= 80 ? "text-amber-600" : "text-emerald-600"}`;
+      wRemEl.className = `text-lg font-black money-val ${curW.remaining < 0 ? "text-rose-600" : wPct >= 80 ? "text-amber-600" : "text-emerald-600"}`;
 
       const rolloverEl = document.getElementById("rolloverNote");
       if (selectedWeek > 1 && Math.abs(curW.carryOver) >= 0.01) {
         rolloverEl.classList.remove("hidden");
         if (curW.carryOver > 0) {
-          rolloverEl.className = "text-[10px] text-emerald-700 font-semibold mt-1.5";
+          rolloverEl.className = "text-[10px] text-emerald-600 dark:text-emerald-400 font-bold mt-1.5 money-val";
           rolloverEl.textContent = `↪ Önceki haftalardan +${fmtTL(curW.carryOver)} tasarruf devretti.`;
         } else {
-          rolloverEl.className = "text-[10px] text-rose-600 font-semibold mt-1.5";
+          rolloverEl.className = "text-[10px] text-rose-600 font-bold mt-1.5 money-val";
           rolloverEl.textContent = `↪ Önceki haftalardan -${fmtTL(Math.abs(curW.carryOver))} aşım devretti.`;
         }
       } else {
@@ -866,11 +1036,15 @@
       fourWeeksDiv.innerHTML = [1, 2, 3, 4].map(w => {
         const rem = weekData[w].remaining;
         const isSel = w === selectedWeek;
-        const colorCls = rem < 0 ? "text-rose-600 bg-rose-50 border-rose-200" : isSel ? "text-sky-900 bg-sky-50 border-sky-300" : "text-slate-700 bg-slate-50 border-slate-200";
+        const colorCls = rem < 0
+          ? "text-rose-600 bg-rose-500/10 border-rose-500/30"
+          : isSel
+            ? "text-sky-600 dark:text-sky-300 bg-sky-500/15 border-sky-500/40"
+            : "soft-box opacity-85";
         return `
           <button type="button" onclick="selectWeek(${w})" class="p-2 rounded-xl border ${colorCls} transition">
             <div class="text-[10px] font-bold opacity-75">${w}. Hafta</div>
-            <div class="text-[11px] font-extrabold mt-0.5">${Math.round(rem).toLocaleString("tr-TR")} ₺</div>
+            <div class="text-[11px] font-black mt-0.5 money-val">${Math.round(rem).toLocaleString("tr-TR")} ₺</div>
           </button>
         `;
       }).join("");
@@ -881,22 +1055,22 @@
       const alertDesc = document.getElementById("alertDesc");
 
       if (cashRem < 0 || ccRem < 0) {
-        alertBox.className = "card p-3.5 border-l-4 border-l-rose-600 bg-rose-50";
+        alertBox.className = "card p-3.5 border-l-4 border-l-rose-600 bg-rose-500/10";
         alertIcon.textContent = "🚨";
         alertTitle.textContent = "Dikkat: Dönem Bütçe Tavanı Aşıldı!";
-        alertDesc.textContent = `Nakit veya kredi kartı harcama limitiniz eksiye düştü. Zorunlu olmayan market ve dışarıda yeme-içme harcamalarını durdurun.`;
+        alertDesc.textContent = `Nakit veya kredi kartı harcama limitiniz eksiye düştü. Zorunlu olmayan harcamaları durdurun.`;
       } else if (curW.remaining < 0) {
-        alertBox.className = "card p-3.5 border-l-4 border-l-amber-500 bg-amber-50";
+        alertBox.className = "card p-3.5 border-l-4 border-l-amber-500 bg-amber-500/10";
         alertIcon.textContent = "⚠️";
-        alertTitle.textContent = `${selectedWeek}. Hafta Devirli Limiti Aşıldı (${fmtTL(Math.abs(curW.remaining))} fazla)`;
-        alertDesc.textContent = `Bu aşım sonraki haftanın limitinden otomatik düşüldü; önümüzdeki günlerde harcamaları yavaşlatın.`;
+        alertTitle.textContent = `${selectedWeek}. Hafta Devirli Limiti Aşıldı`;
+        alertDesc.textContent = `Bu haftaki ${fmtTL(Math.abs(curW.remaining))} aşım sonraki haftanın limitinden otomatik düşüldü.`;
       } else if (wPct >= 80) {
-        alertBox.className = "card p-3.5 border-l-4 border-l-amber-500 bg-amber-50/70";
+        alertBox.className = "card p-3.5 border-l-4 border-l-amber-500 bg-amber-500/10";
         alertIcon.textContent = "⏳";
         alertTitle.textContent = `${selectedWeek}. Hafta Limitinin %${Math.round(wPct)}'i Kullanıldı`;
         alertDesc.textContent = `Bu hafta kalan devirli hakkınız ${fmtTL(curW.remaining)}. Küçük parça alışverişleri erteleyin.`;
       } else {
-        alertBox.className = "card p-3.5 border-l-4 border-l-emerald-500 bg-emerald-50/70";
+        alertBox.className = "card p-3.5 border-l-4 border-l-emerald-500 bg-emerald-500/10";
         alertIcon.textContent = "✅";
         alertTitle.textContent = "Tasarruf Hedefi Yolunda";
         alertDesc.textContent = `${selectedWeek}. hafta için ${fmtTL(curW.remaining)} kullanılabilir nakit hakkınız var.`;
@@ -915,55 +1089,107 @@
 
       const txContainer = document.getElementById("txListContainer");
       if (filteredTxs.length === 0) {
-        txContainer.innerHTML = `<div class="py-8 text-center text-xs text-slate-400">${searchQ ? "Aramayla eşleşen harcama bulunamadı." : "Bu dönem için henüz harcama girilmedi.<br/>Yukarıdan eklediğiniz an iki telefonda da görünür."}</div>`;
+        txContainer.innerHTML = `<div class="py-8 text-center text-xs opacity-50">${searchQ ? "Aramayla eşleşen harcama bulunamadı." : "Bu dönem için henüz harcama girilmedi.<br/>Yukarıdan eklediğiniz an iki telefonda da görünür."}</div>`;
       } else {
         txContainer.innerHTML = filteredTxs.map(t => {
           const isGurkan = t.user === "Gürkan";
           const userBadge = isGurkan
-            ? `<span class="px-1.5 py-0.5 rounded bg-sky-100 text-sky-800 font-bold text-[10px]">👨🏻 Gürkan</span>`
-            : `<span class="px-1.5 py-0.5 rounded bg-purple-100 text-purple-800 font-bold text-[10px]">👩🏻 Nedime</span>`;
+            ? `<span class="px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-700 dark:text-sky-300 font-bold text-[10px]">👨🏻 Gürkan</span>`
+            : `<span class="px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-700 dark:text-purple-300 font-bold text-[10px]">👩🏻 Nedime</span>`;
           const methodBadge = t.method === "nakit"
-            ? `<span class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">Nakit</span>`
-            : `<span class="text-[10px] font-semibold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded">Kredi Kartı</span>`;
+            ? `<span class="text-[10px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-500/15 px-1.5 py-0.5 rounded">Nakit</span>`
+            : `<span class="text-[10px] font-semibold text-indigo-700 dark:text-indigo-300 bg-indigo-500/15 px-1.5 py-0.5 rounded">K.Kartı</span>`;
 
           return `
             <div class="py-2.5 flex items-center justify-between gap-2">
               <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-1.5 flex-wrap">
-                  <span class="text-xs font-bold text-slate-800">${t.category}</span>
+                  <span class="text-xs font-bold">${t.category}</span>
                   ${userBadge}
                   ${methodBadge}
-                  <span class="text-[10px] text-slate-400">• ${t.week}. Hafta</span>
+                  <span class="text-[10px] opacity-50">• ${t.week}. Hf</span>
                 </div>
-                <p class="text-[11px] text-slate-500 truncate mt-0.5">${t.note ? t.note + " • " : ""}${t.dateStr || ""}</p>
+                <p class="text-[11px] opacity-65 truncate mt-0.5">${t.note ? t.note + " • " : ""}${t.dateStr || ""}</p>
               </div>
-              <div class="flex items-center gap-1.5">
-                <span class="text-xs font-extrabold text-slate-900 mr-1">${fmtTL(t.amount)}</span>
-                <button onclick="openEditTxModal('${t.id}')" class="p-1 text-slate-400 hover:text-sky-600 text-xs" title="Düzenle">✏️</button>
-                <button onclick="deleteTx('${t.id}')" class="p-1 text-slate-300 hover:text-rose-500 font-bold" title="Sil">✕</button>
+              <div class="flex items-center gap-1">
+                <span class="text-xs font-black mr-1 money-val">${fmtTL(t.amount)}</span>
+                <button onclick="openEditTxModal('${t.id}')" class="p-1 opacity-60 hover:opacity-100 text-xs" title="Düzenle">✏️</button>
+                <button onclick="deleteTx('${t.id}')" class="p-1 opacity-40 hover:text-rose-500 font-bold" title="Sil">✕</button>
               </div>
             </div>
           `;
         }).join("");
       }
 
+      // Render Shared Savings Goals
+      const totalSaved = goals.reduce((s, g) => s + Number(g.saved || 0), 0);
+      document.getElementById("goalsTotalSaved").textContent = fmtTL(totalSaved);
+      const goalsListEl = document.getElementById("goalsListContainer");
+      if (goals.length === 0) {
+        goalsListEl.innerHTML = `<div class="py-6 text-center opacity-50">Henüz ortak birikim hedefi eklenmedi.</div>`;
+      } else {
+        goalsListEl.innerHTML = goals.map(g => {
+          const saved = Number(g.saved || 0);
+          const target = Math.max(1, Number(g.target || 1));
+          const pct = Math.min(100, Math.round((saved / target) * 100));
+          return `
+            <div class="soft-box p-3 rounded-xl space-y-2">
+              <div class="flex justify-between items-center">
+                <div>
+                  <div class="font-extrabold text-xs">${g.name}</div>
+                  <div class="text-[10px] opacity-70 money-val">Biriken: <strong>${fmtTL(saved)}</strong> / Hedef: ${fmtTL(target)} (%${pct})</div>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="contributeGoal('${g.id}', 500)" class="px-2 py-1 rounded-lg bg-emerald-600 text-white font-bold text-[10px]">+500 ₺</button>
+                  <button type="button" onclick="contributeGoalPrompt('${g.id}')" class="px-2 py-1 rounded-lg bg-sky-600 text-white font-bold text-[10px]">+Tutar</button>
+                  <button type="button" onclick="deleteGoal('${g.id}')" class="p-1 opacity-40 hover:text-rose-500 font-bold">✕</button>
+                </div>
+              </div>
+              <div class="w-full bg-slate-200 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden">
+                <div class="bg-emerald-500 h-full rounded-full transition-all duration-300" style="width: ${pct}%"></div>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      // Analytics Tab
       const totalVarSpent = cashSpent + ccSpent;
-      document.getElementById("reportTotalSub").textContent = `Toplam Değişken Harcama: ${fmtTL(totalVarSpent)}`;
-      document.getElementById("userSummaryBoxes").innerHTML = `
-        <div class="p-2.5 rounded-xl bg-sky-50 border border-sky-200">
-          <div class="text-[10px] font-bold text-sky-800">👨🏻 Gürkan Toplam</div>
-          <div class="text-sm font-extrabold text-slate-900 mt-0.5">${fmtTL(gurkanSpent)}</div>
+      const grandTotalOutflow = totalVarSpent + fixedLoad;
+      document.getElementById("reportTotalSub").textContent = `Değişken: ${fmtTL(totalVarSpent)} • Genel Çıkış: ${fmtTL(grandTotalOutflow)}`;
+
+      document.getElementById("outflowBreakdown").innerHTML = `
+        <div class="soft-box p-2 rounded-xl">
+          <div class="text-[10px] opacity-65">Nakit Harcama</div>
+          <div class="font-extrabold text-xs mt-0.5 text-emerald-600 money-val">${fmtTL(cashSpent)}</div>
         </div>
-        <div class="p-2.5 rounded-xl bg-purple-50 border border-purple-200">
-          <div class="text-[10px] font-bold text-purple-800">👩🏻 Nedime Toplam</div>
-          <div class="text-sm font-extrabold text-slate-900 mt-0.5">${fmtTL(nedimeSpent)}</div>
+        <div class="soft-box p-2 rounded-xl">
+          <div class="text-[10px] opacity-65">Kart Ekstra</div>
+          <div class="font-extrabold text-xs mt-0.5 text-sky-600 money-val">${fmtTL(ccSpent)}</div>
+        </div>
+        <div class="soft-box p-2 rounded-xl">
+          <div class="text-[10px] opacity-65">Sabit Yük</div>
+          <div class="font-extrabold text-xs mt-0.5 text-rose-600 money-val">${fmtTL(fixedLoad)}</div>
+        </div>
+      `;
+
+      const gPct = totalVarSpent > 0 ? Math.round((gurkanSpent / totalVarSpent) * 100) : 0;
+      const nPct = totalVarSpent > 0 ? Math.round((nedimeSpent / totalVarSpent) * 100) : 0;
+      document.getElementById("userSummaryBoxes").innerHTML = `
+        <div class="p-2.5 rounded-xl bg-sky-500/10 border border-sky-500/25">
+          <div class="text-[10px] font-bold text-sky-700 dark:text-sky-300">👨🏻 Gürkan (%${gPct})</div>
+          <div class="text-sm font-black mt-0.5 money-val">${fmtTL(gurkanSpent)}</div>
+        </div>
+        <div class="p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/25">
+          <div class="text-[10px] font-bold text-purple-700 dark:text-purple-300">👩🏻 Nedime (%${nPct})</div>
+          <div class="text-sm font-black mt-0.5 money-val">${fmtTL(nedimeSpent)}</div>
         </div>
       `;
 
       const chartContainer = document.getElementById("categoryChartBars");
       const sortedCats = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
       if (sortedCats.length === 0) {
-        chartContainer.innerHTML = `<div class="py-6 text-center text-slate-400">Bu dönemde henüz harcama verisi yok.</div>`;
+        chartContainer.innerHTML = `<div class="py-6 text-center opacity-50">Bu dönemde henüz harcama verisi yok.</div>`;
       } else {
         chartContainer.innerHTML = sortedCats.map(([cat, val]) => {
           const pct = totalVarSpent > 0 ? Math.round((val / totalVarSpent) * 100) : 0;
@@ -971,10 +1197,10 @@
           return `
             <div class="space-y-1">
               <div class="flex justify-between text-[11px]">
-                <span class="font-bold text-slate-800">${cat}</span>
-                <span class="text-slate-600 font-semibold">${fmtTL(val)} <span class="text-slate-400">(%${pct})</span></span>
+                <span class="font-bold">${cat}</span>
+                <span class="opacity-75 font-semibold money-val">${fmtTL(val)} <span class="opacity-60">(%${pct})</span></span>
               </div>
-              <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+              <div class="w-full bg-slate-200 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
                 <div class="${barColor} h-full rounded-full transition-all duration-300" style="width: ${pct}%"></div>
               </div>
             </div>
@@ -982,21 +1208,22 @@
         }).join("");
       }
 
+      // Fixed Items
       document.getElementById("fixedTotalDisplay").textContent = fmtTL(fixedLoad);
       const fixedListEl = document.getElementById("fixedItemsList");
       const items = cfg.fixedItems || [];
       if (items.length === 0) {
-        fixedListEl.innerHTML = `<div class="py-4 text-center text-slate-400">Sabit gider kalemi bulunmuyor.</div>`;
+        fixedListEl.innerHTML = `<div class="py-4 text-center opacity-50">Sabit gider kalemi bulunmuyor.</div>`;
       } else {
         fixedListEl.innerHTML = items.map((it, idx) => `
-          <div class="flex justify-between items-center py-2 px-3 rounded-lg bg-white border border-slate-100 gap-2">
+          <div class="flex justify-between items-center py-2 px-3 rounded-xl soft-box gap-2">
             <div class="min-w-0 flex-1">
-              <div class="font-semibold text-slate-800 truncate">${it.name}</div>
-              <div class="text-[10px] text-slate-400 truncate">${it.note || ""}</div>
+              <div class="font-bold truncate">${it.name}</div>
+              <div class="text-[10px] opacity-60 truncate">${it.note || ""}</div>
             </div>
             <div class="flex items-center gap-2">
-              <span class="font-bold text-slate-900 whitespace-nowrap">${fmtTL(it.amount)}</span>
-              <button type="button" onclick="deleteFixedItem(${idx})" class="p-1 text-slate-300 hover:text-rose-500 font-bold" title="Kalemi Sil">✕</button>
+              <span class="font-extrabold whitespace-nowrap money-val">${fmtTL(it.amount)}</span>
+              <button type="button" onclick="deleteFixedItem(${idx})" class="p-1 opacity-40 hover:text-rose-500 font-bold" title="Kalemi Sil">✕</button>
             </div>
           </div>
         `).join("");
@@ -1007,6 +1234,107 @@
       document.getElementById("weekSelect").value = String(w);
       document.getElementById("expWeek").value = String(w);
       renderAll();
+    };
+
+    // Income Modal
+    window.openIncomeModal = function() {
+      document.getElementById("incomeAmount").value = "";
+      document.getElementById("incomeNote").value = "";
+      document.getElementById("incomeModal").classList.remove("hidden");
+      document.getElementById("incomeModal").classList.add("flex");
+    };
+
+    window.closeIncomeModal = function() {
+      document.getElementById("incomeModal").classList.add("hidden");
+      document.getElementById("incomeModal").classList.remove("flex");
+    };
+
+    window.saveIncome = async function() {
+      const amt = parseFloat(document.getElementById("incomeAmount").value);
+      if (!amt || amt <= 0) return;
+      const target = document.getElementById("incomeTarget").value;
+      const cfg = state.periodConfig || getDefaultPeriodConfig(state.period);
+      const updated = { ...cfg };
+      if (target === "cash") updated.cashBudget = Number((Number(cfg.cashBudget || 0) + amt).toFixed(2));
+      else updated.ccBudget = Number((Number(cfg.ccBudget || 0) + amt).toFixed(2));
+
+      const roomId = state.roomCode.trim().toUpperCase();
+      await setDoc(doc(db, "rooms", roomId, "periods", state.period), updated);
+      closeIncomeModal();
+    };
+
+    // Savings Goals Actions
+    window.addSavingsGoal = async function(e) {
+      e.preventDefault();
+      const name = document.getElementById("newGoalName").value.trim();
+      const target = parseFloat(document.getElementById("newGoalTarget").value);
+      if (!name || !target || target <= 0) return;
+      const roomId = state.roomCode.trim().toUpperCase();
+      await addDoc(collection(db, "rooms", roomId, "goals"), {
+        name,
+        target,
+        saved: 0,
+        createdAt: Date.now()
+      });
+      document.getElementById("newGoalName").value = "";
+      document.getElementById("newGoalTarget").value = "";
+    };
+
+    window.contributeGoal = async function(goalId, addAmt) {
+      const goal = (state.goals || []).find(g => g.id === goalId);
+      if (!goal) return;
+      const roomId = state.roomCode.trim().toUpperCase();
+      await updateDoc(doc(db, "rooms", roomId, "goals", goalId), {
+        saved: Number((Number(goal.saved || 0) + addAmt).toFixed(2))
+      });
+    };
+
+    window.contributeGoalPrompt = async function(goalId) {
+      const val = prompt("Bu hedefe eklenecek tutarı girin (₺):", "1000");
+      const num = parseFloat(val);
+      if (num && num > 0) await contributeGoal(goalId, num);
+    };
+
+    window.deleteGoal = async function(goalId) {
+      if (!confirm("Bu birikim hedefini silmek istiyor musunuz?")) return;
+      const roomId = state.roomCode.trim().toUpperCase();
+      await deleteDoc(doc(db, "rooms", roomId, "goals", goalId));
+    };
+
+    // WhatsApp Summary Share
+    window.shareWhatsAppSummary = function() {
+      const cfg = state.periodConfig || getDefaultPeriodConfig(state.period);
+      const txs = state.transactions || [];
+      let cashSpent = 0, ccSpent = 0;
+      txs.forEach(t => { if (t.method === "nakit") cashSpent += Number(t.amount || 0); else ccSpent += Number(t.amount || 0); });
+      const cashRem = Number(cfg.cashBudget || 0) - cashSpent;
+      const ccRem = Number(cfg.ccBudget || 0) - ccSpent;
+
+      const text = [
+        `📊 *Karakan Aile Bütçesi (${state.period})*`,
+        `💵 Kalan Nakit Kasa: *${fmtTL(cashRem)}* (Harcanan: ${fmtTL(cashSpent)})`,
+        `💳 Kalan Kart Limiti: *${fmtTL(ccRem)}* (Harcanan: ${fmtTL(ccSpent)})`,
+        `🔒 Aylık Sabit Yük: ${fmtTL(cfg.fixedLoad || 0)}`,
+        `📱 Detaylar: https://muvudo.github.io/karakan-butce/`
+      ].join("\n");
+
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+    };
+
+    window.requestDailyReminder = async function() {
+      if (!("Notification" in window)) {
+        alert("Bu tarayıcı bildirimleri desteklemiyor.");
+        return;
+      }
+      const perm = await Notification.requestPermission();
+      if (perm === "granted") {
+        new Notification("Karakan Bütçe PRO", {
+          body: "Bildirimler açıldı! Günlük harcamalarınızı kaydetmeyi unutmayın.",
+          icon: "icon.png"
+        });
+      } else {
+        alert("Bildirim izni verilmedi. Tarayıcı site ayarlarından izin verebilirsiniz.");
+      }
     };
 
     window.addExpense = async function(e) {
@@ -1286,7 +1614,7 @@
     };
 
     window.switchTab = function(tab) {
-      const tabs = ["tx", "report", "fixed"];
+      const tabs = ["tx", "goals", "report", "fixed"];
       tabs.forEach(t => {
         const btn = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}Btn`);
         const panel = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}Panel`);
@@ -1352,7 +1680,8 @@
       closeSettings();
     };
 
-    // Init UI & Auto-select current week
+    // Init UI
+    applyThemeAndPrivacy();
     const autoWeek = String(detectCurrentWeekOfMonth());
     document.getElementById("weekSelect").value = autoWeek;
     document.getElementById("expWeek").value = autoWeek;
