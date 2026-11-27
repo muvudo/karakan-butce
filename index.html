@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Karakan Bütçe" />
+  <title>Karakan Aile Bütçesi — Ortak Ev Ekonomisi</title>
+  <link rel="manifest" href="data:application/manifest+json,{&quot;name&quot;:&quot;Karakan Aile Bütçesi&quot;,&quot;short_name&quot;:&quot;Karakan Bütçe&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;#0f172a&quot;,&quot;theme_color&quot;:&quot;#0f172a&quot;}" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; color: #0f172a; -webkit-tap-highlight-color: transparent; }
+    .card { background: #ffffff; border-radius: 16px; box-shadow: 0 1px 3px rgba(15,23,42,0.06), 0 1px 2px rgba(15,23,42,0.04); border: 1px solid #e2e8f0; }
+    .tab-active { color: #0f172a; border-bottom: 2.5px solid #0284c7; font-weight: 700; }
+    .tab-inactive { color: #64748b; font-weight: 500; }
+    input, select { font-size: 16px !important; }
+  </style>
+</head>
+<body class="pb-24">
+
+  <!-- Top Header -->
+  <header class="bg-slate-900 text-white sticky top-0 z-30 shadow-md">
+    <div class="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="text-base font-extrabold tracking-tight">Karakan Bütçe</span>
+          <span id="syncBadge" class="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30">
+            <span id="syncDot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+            <span id="syncText">Bağlanıyor...</span>
+          </span>
+        </div>
+        <p class="text-[11px] text-slate-400 mt-0.5" id="roomSubtitle">Oda: KARAKAN-2026 • Anlık Ortak Kasa</p>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button id="userToggleBtn" onclick="toggleUser()" class="px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 active:scale-95 transition text-xs font-bold flex items-center gap-1.5 shadow">
+          <span id="userAvatar">👨🏻</span>
+          <span id="activeUserLabel">Gürkan</span>
+        </button>
+        <button onclick="openSettings()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300" title="Ayarlar">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Period Switcher -->
+    <div class="max-w-lg mx-auto px-4 pb-2.5 flex items-center justify-between gap-2 text-xs">
+      <select id="periodSelect" onchange="changePeriod()" class="bg-slate-800 text-white border border-slate-700 rounded-lg px-2.5 py-1.5 font-semibold focus:outline-none">
+        <option value="2026-11">Kasım Sonu (28 Kas – 27 Ara 2026)</option>
+        <option value="2026-12">Aralık 2026 (Maaş: 81.000 ₺)</option>
+        <option value="2027-01">Ocak 2027 (Maaş: 81.000 ₺)</option>
+        <option value="2027-02">Şubat 2027 (Maaş: 81.000 ₺)</option>
+        <option value="2027-03">Mart 2027 (Maaş: 81.000 ₺)</option>
+        <option value="2027-04">Nisan 2027 (Dyson Son Taksit)</option>
+        <option value="2027-05">Mayıs 2027 (Dyson Bitti!)</option>
+      </select>
+      <button onclick="openBudgetModal()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-sky-300 font-semibold hover:bg-slate-700">
+        ✏️ Kasa / Limit Düzenle
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-lg mx-auto px-4 pt-4 space-y-4">
+
+    <!-- Smart Savings Alert Banner -->
+    <div id="alertBox" class="card p-3.5 border-l-4 border-l-emerald-500 bg-emerald-50/70">
+      <div class="flex items-start gap-2.5">
+        <span id="alertIcon" class="text-lg">💡</span>
+        <div class="text-xs leading-relaxed">
+          <p id="alertTitle" class="font-bold text-slate-900">Tasarruf Durumu: Dengeli İlerliyorsunuz</p>
+          <p id="alertDesc" class="text-slate-600 mt-0.5">Haftalık limitinizin içinde kalarak ay sonunda birikim hedefinizi koruyabilirsiniz.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main KPI Cards: Cash & Credit Card -->
+    <div class="grid grid-cols-2 gap-3">
+      <!-- Nakit / Banka Kartı Kasası -->
+      <div class="card p-3.5">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">Nakit / Hesap</span>
+          <span class="text-xs text-slate-400">Kalan</span>
+        </div>
+        <div id="cashRemainingVal" class="text-xl font-extrabold text-slate-900 mt-2">11.674,08 ₺</div>
+        <div class="text-[11px] text-slate-500 mt-1">
+          Bütçe: <span id="cashTotalVal" class="font-semibold">11.674,08 ₺</span>
+        </div>
+        <div class="w-full bg-slate-100 h-2 rounded-full mt-2 overflow-hidden">
+          <div id="cashProgressBar" class="bg-emerald-500 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- Kredi Kartı Serbest Harcama Limiti -->
+      <div class="card p-3.5">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md">Kredi Kartı</span>
+          <span class="text-xs text-slate-400">Güvenli Limit</span>
+        </div>
+        <div id="ccRemainingVal" class="text-xl font-extrabold text-slate-900 mt-2">0,00 ₺</div>
+        <div class="text-[11px] text-slate-500 mt-1">
+          Tavan: <span id="ccTotalVal" class="font-semibold">0,00 ₺</span>
+        </div>
+        <div class="w-full bg-slate-100 h-2 rounded-full mt-2 overflow-hidden">
+          <div id="ccProgressBar" class="bg-sky-500 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Weekly Limit Tracker Card -->
+    <div class="card p-4">
+      <div class="flex items-center justify-between mb-2">
+        <div>
+          <h2 class="text-sm font-bold text-slate-900">Haftalık Harcama Limiti Takibi</h2>
+          <p class="text-[11px] text-slate-500" id="weekSubInfo">4 haftalık eşit dağıtım • Günlük ortalama: 416,93 ₺</p>
+        </div>
+        <select id="weekSelect" onchange="renderAll()" class="text-xs font-bold bg-slate-100 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800">
+          <option value="1">1. Hafta</option>
+          <option value="2">2. Hafta</option>
+          <option value="3">3. Hafta</option>
+          <option value="4">4. Hafta</option>
+        </select>
+      </div>
+
+      <div class="bg-slate-50 rounded-xl p-3 border border-slate-200/80">
+        <div class="flex justify-between items-baseline">
+          <span class="text-xs font-medium text-slate-600">Bu Hafta Kalan Limit:</span>
+          <span id="weeklyRemainingVal" class="text-lg font-extrabold text-emerald-600">2.918,52 ₺</span>
+        </div>
+        <div class="w-full bg-slate-200 h-3 rounded-full my-2 overflow-hidden">
+          <div id="weeklyProgressBar" class="bg-emerald-500 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+        <div class="flex justify-between text-[11px] text-slate-500">
+          <span>Harcanan: <strong id="weeklySpentVal" class="text-slate-800">0,00 ₺</strong></span>
+          <span>Haftalık Tavan: <strong id="weeklyLimitVal" class="text-slate-800">2.918,52 ₺</strong></span>
+        </div>
+      </div>
+
+      <!-- Mini 4-Week Overview -->
+      <div class="grid grid-cols-4 gap-2 mt-3 text-center" id="fourWeeksMini"></div>
+    </div>
+
+    <!-- Quick Add Expense Form -->
+    <div class="card p-4">
+      <h2 class="text-sm font-bold text-slate-900 mb-3 flex items-center justify-between">
+        <span>➕ Hızlı Harcama Ekle</span>
+        <span class="text-[11px] font-normal text-slate-400">Anında eşinizin telefonuna düşer</span>
+      </h2>
+
+      <form id="expenseForm" onsubmit="addExpense(event)" class="space-y-3">
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Tutar (₺)</label>
+            <input type="number" step="0.01" min="0.01" id="expAmount" required placeholder="Örn: 450" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold text-slate-900 focus:outline-none focus:border-sky-500" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Ödeme Kanalı</label>
+            <select id="expMethod" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-semibold text-slate-800 bg-white focus:outline-none focus:border-sky-500">
+              <option value="nakit">💵 Nakit / Banka Kartı</option>
+              <option value="kk">💳 Kredi Kartı</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Kategori</label>
+            <select id="expCategory" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-medium text-slate-800 bg-white focus:outline-none focus:border-sky-500">
+              <option value="Market & Gıda">🛒 Market & Gıda</option>
+              <option value="Akaryakıt & Ulaşım">⛽ Akaryakıt & Ulaşım</option>
+              <option value="Dışarıda Yeme-İçme">🍽️ Dışarıda Yeme-İçme</option>
+              <option value="Sağlık & Eczane">💊 Sağlık & Eczane</option>
+              <option value="Giyim & Kişisel">👕 Giyim & Kişisel</option>
+              <option value="Ev & Fatura">🏠 Ev & Fatura</option>
+              <option value="Çocuk & Okul">🎒 Çocuk & Okul</option>
+              <option value="Diğer">📌 Diğer</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Hangi Hafta?</label>
+            <select id="expWeek" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-medium text-slate-800 bg-white focus:outline-none focus:border-sky-500">
+              <option value="1">1. Hafta</option>
+              <option value="2">2. Hafta</option>
+              <option value="3">3. Hafta</option>
+              <option value="4">4. Hafta</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 mb-1">Açıklama / Mağaza (İsteğe bağlı)</label>
+          <input type="text" id="expNote" placeholder="Örn: BİM haftalık alışveriş, Kaynar Petrol..." class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm text-slate-800 focus:outline-none focus:border-sky-500" />
+        </div>
+
+        <button type="submit" class="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-[0.99] transition text-white font-bold text-sm shadow">
+          Harcamayı Kaydet ve Eşitle
+        </button>
+      </form>
+    </div>
+
+    <!-- Navigation Tabs: Transactions vs Fixed Commitments -->
+    <div class="card overflow-hidden">
+      <div class="flex border-b border-slate-200 text-xs">
+        <button id="tabTxBtn" onclick="switchTab('tx')" class="flex-1 py-3 text-center tab-active">
+          📋 Son Harcamalar (<span id="txCountBadge">0</span>)
+        </button>
+        <button id="tabFixedBtn" onclick="switchTab('fixed')" class="flex-1 py-3 text-center tab-inactive">
+          🔒 Sabit Gider & Taksitler
+        </button>
+      </div>
+
+      <!-- Tab 1: Transactions List -->
+      <div id="tabTxPanel" class="p-3 divide-y divide-slate-100 max-h-96 overflow-y-auto">
+        <div class="py-6 text-center text-xs text-slate-400">Henüz bu dönem için harcama girilmedi.</div>
+      </div>
+
+      <!-- Tab 2: Fixed Commitments & Installments -->
+      <div id="tabFixedPanel" class="p-4 hidden space-y-3 text-xs">
+        <div class="flex justify-between items-center p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+          <span class="font-bold text-slate-700">Aylık Zorunlu Sabit Yük Toplamı</span>
+          <span id="fixedTotalDisplay" class="font-extrabold text-sm text-rose-600">38.245,91 ₺</span>
+        </div>
+        <div id="fixedItemsList" class="space-y-2"></div>
+        <p class="text-[11px] text-slate-500 leading-relaxed pt-1">
+          * <strong>Dyson (5.999,89 ₺)</strong> 9 taksit olup <strong>Mayıs 2027</strong>'de biter ve aylık sabit yükünüz otomatik olarak <strong>32.246,02 ₺</strong>'ye düşer.
+        </p>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Modal: Period Cash & Limit Settings -->
+  <div id="budgetModal" class="fixed inset-0 bg-slate-900/60 z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-4 shadow-xl">
+      <div class="flex justify-between items-center">
+        <h3 class="font-bold text-base text-slate-900">Dönem Kasa ve Limit Ayarı</h3>
+        <button onclick="closeBudgetModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+      </div>
+      <p class="text-xs text-slate-500" id="modalPeriodLabel">Seçili dönem için nakit ve kredi kartı harcama tavanlarını belirleyin:</p>
+
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Bu Ay Nakit / Banka Kartı Bütçesi (₺)</label>
+          <input type="number" step="0.01" id="inputCashBudget" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold" />
+          <p class="text-[11px] text-slate-400 mt-0.5">4 haftalık nakit harcama limitiniz bu tutar üzerinden otomatik bölünür.</p>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Bu Ay Kredi Kartı Ekstra Harcama Tavanı (₺)</label>
+          <input type="number" step="0.01" id="inputCcBudget" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold" />
+          <p class="text-[11px] text-slate-400 mt-0.5">Sabit taksitler dışında kredi kartından yapılacak güvenli harcama limiti.</p>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Aylık Sabit Gider & Taksit Yükü (₺)</label>
+          <input type="number" step="0.01" id="inputFixedLoad" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold" />
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-2">
+        <button onclick="closeBudgetModal()" class="flex-1 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-600">İptal</button>
+        <button onclick="savePeriodBudget()" class="flex-1 py-2.5 rounded-xl bg-sky-600 text-white text-xs font-bold shadow">Kaydet ve Eşitle</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Room / Cloud Settings -->
+  <div id="settingsModal" class="fixed inset-0 bg-slate-900/60 z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-4 shadow-xl">
+      <div class="flex justify-between items-center">
+        <h3 class="font-bold text-base text-slate-900">İki Telefon Eşitleme & Profil</h3>
+        <button onclick="closeSettings()" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Bu Telefondaki Kullanıcı</label>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" onclick="setActiveUser('Gürkan')" id="btnPickGurkan" class="py-2.5 rounded-xl border-2 border-sky-600 bg-sky-50 text-sky-900 font-bold text-xs">👨🏻 Gürkan</button>
+            <button type="button" onclick="setActiveUser('Nedime')" id="btnPickNedime" class="py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs">👩🏻 Nedime</button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Ortak Aile Odası Kodu (İki telefonda aynı olmalı)</label>
+          <input type="text" id="inputRoomCode" value="KARAKAN-2026" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-mono font-bold uppercase text-sm" />
+        </div>
+
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-600 space-y-1">
+          <p class="font-bold text-slate-800">✅ Bulut Bağlantısı Ön Yüklü</p>
+          <p>Proje: <span class="font-mono font-semibold">karakan-butce</span> (Europe / eur3)</p>
+          <p>Durum: <span id="modalConnStatus" class="font-semibold text-emerald-700">Bağlı</span></p>
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-2">
+        <button onclick="closeSettings()" class="flex-1 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-600">Kapat</button>
+        <button onclick="saveRoomSettings()" class="flex-1 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold shadow">Odayı Güncelle</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK (v10 Modular via CDN) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    // Gürkan Karakan's Firebase Project Configuration (karakan-butce)
+    const firebaseConfig = {
+      apiKey: "AIzaSyCR2hJfnXGC53SgnDFVzl1U2cMJVKqF-0Y",
+      authDomain: "karakan-butce.firebaseapp.com",
+      projectId: "karakan-butce",
+      storageBucket: "karakan-butce.firebasestorage.app",
+      messagingSenderId: "341980138963",
+      appId: "1:341980138963:web:7a47f5e04b0ac6cc8fb326"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Default Period Presets based on Karakan Family Financial Analysis
+    const DEFAULT_PERIODS = {
+      "2026-11": {
+        label: "Kasım Sonu (28 Kas – 27 Ara 2026)",
+        cashBudget: 11674.08,
+        ccBudget: 0.00,
+        fixedLoad: 38245.91,
+        fixedItems: [
+          { name: "Okul Gideri (Sabit)", amount: 13500.00, note: "Her ay sabit" },
+          { name: "Dyson.com.tr (5/9 Taksit)", amount: 5999.89, note: "Mayıs 2027'de biter" },
+          { name: "Oto İsmail Otomotiv (3. Tk)", amount: 5666.67, note: "Araç servis taksiti" },
+          { name: "Hepiyi Sigorta Poliçe 1 (2. Tk)", amount: 5457.34, note: "Kasko/Trafik" },
+          { name: "Hepiyi Sigorta Poliçe 2 (2. Tk)", amount: 2693.13, note: "Sigorta taksiti" },
+          { name: "IKEA Ümraniye Mağaza (2. Tk)", amount: 905.33, note: "Mağaza taksiti" },
+          { name: "Faturalar & Prime (Otomatik)", amount: 4023.55, note: "TürkNet, TT x2, İSKİ, Enerjisa, Vodafone" }
+        ]
+      },
+      "2026-12": {
+        label: "Aralık 2026 (Maaş: 81.000 ₺)",
+        cashBudget: 15000.00,
+        ccBudget: 5000.00,
+        fixedLoad: 38245.91,
+        fixedItems: [
+          { name: "Okul Gideri (Sabit)", amount: 13500.00, note: "Her ay sabit" },
+          { name: "Dyson.com.tr (5/9 Taksit)", amount: 5999.89, note: "4 taksit kalacak" },
+          { name: "Oto İsmail Otomotiv", amount: 5666.67, note: "Araç servis taksiti" },
+          { name: "Hepiyi Sigorta (2 Poliçe)", amount: 8150.47, note: "5.457,34 + 2.693,13 ₺" },
+          { name: "IKEA Ümraniye Mağaza", amount: 905.33, note: "Mağaza taksiti" },
+          { name: "Faturalar & Prime", amount: 4023.55, note: "Vadesiz otomatik talimat" }
+        ]
+      },
+      "2027-01": {
+        label: "Ocak 2027 (Maaş: 81.000 ₺)",
+        cashBudget: 15000.00,
+        ccBudget: 5000.00,
+        fixedLoad: 38245.91,
+        fixedItems: [
+          { name: "Okul Gideri (Sabit)", amount: 13500.00, note: "Her ay sabit" },
+          { name: "Dyson.com.tr (6/9 Taksit)", amount: 5999.89, note: "3 taksit kalacak" },
+          { name: "Diğer Kart Taksitleri", amount: 14722.47, note: "Oto İsmail, Hepiyi, IKEA" },
+          { name: "Faturalar & Prime", amount: 4023.55, note: "Vadesiz otomatik talimat" }
+        ]
+      },
+      "2027-02": {
+        label: "Şubat 2027 (Maaş: 81.000 ₺)",
+        cashBudget: 15000.00,
+        ccBudget: 5000.00,
+        fixedLoad: 38245.91,
+        fixedItems: [
+          { name: "Okul Gideri (Sabit)", amount: 13500.00, note: "Her ay sabit" },
+          { name: "Dyson.com.tr (7/9 Taksit)", amount: 5999.89, note: "2 taksit kalacak" },
+          { name: "Diğer Kart Taksitleri", amount: 14722.47, note: "Oto İsmail, Hepiyi, IKEA" },
+          { name: "Faturalar & Prime", amount: 4023.55, note: "Vadesiz otomatik talimat" }
+        ]
+      },
+      "2027-03": {
+        label: "Mart 2027 (Maaş: 81.000 ₺)",
+        cashBudget: 15000.00,
+        ccBudget: 5000.00,
+        fixedLoad: 38245.91,
+        fixedItems: [
+          { name: "Okul Gideri (Sabit)", amount: 13500.00, note: "Her ay sabit" },
+          { name: "Dyson.com.tr (8/9 Taksit)", amount: 5999.89, note: "1 taksit kalacak" },
+          { name: "Diğer Kart Taksitleri", amount: 14722.47, note: "Oto İsmail, Hepiyi, IKEA" },
+          { name: "Faturalar & Prime", amount: 4023.55, note: "Vadesiz otomatik talimat" }
+        ]
+      },
+      "2027-04": {
+        label: "Nisan 2027 (Dyson Son Taksit)",
+        cashBudget: 15000.00,
+        ccBudget: 5000.00,
+        fixedLoad: 38245.91,
+        fixedItems: [
+          { name: "Okul Gideri (Sabit)", amount: 13500.00, note: "Her ay sabit" },
+          { name: "Dyson.com.tr (9/9 Son Taksit)", amount: 5999.89, note: "Bu ay bitiyor!" },
+          { name: "Diğer Kart Taksitleri", amount: 14722.47, note: "Oto İsmail, Hepiyi, IKEA" },
+          { name: "Faturalar & Prime", amount: 4023.55, note: "Vadesiz otomatik talimat" }
+        ]
+      },
+      "2027-05": {
+        label: "Mayıs 2027 (Dyson Bitti!)",
+        cashBudget: 18000.00,
+        ccBudget: 6000.00,
+        fixedLoad: 32246.02,
+        fixedItems: [
+          { name: "Okul Gideri (Sabit)", amount: 13500.00, note: "Her ay sabit" },
+          { name: "Dyson.com.tr", amount: 0.00, note: "Tamamlandı (5.999,89 ₺ tasarruf)" },
+          { name: "Kalan Kart Taksitleri", amount: 14722.47, note: "Oto İsmail, Hepiyi, IKEA" },
+          { name: "Faturalar & Prime", amount: 4023.55, note: "Vadesiz otomatik talimat" }
+        ]
+      }
+    };
+
+    // App State
+    let state = {
+      user: localStorage.getItem("kb_user") || "Gürkan",
+      roomCode: localStorage.getItem("kb_room") || "KARAKAN-2026",
+      period: localStorage.getItem("kb_period") || "2026-11",
+      periodConfig: null,
+      transactions: [],
+      isConnected: false
+    };
+
+    let unsubPeriod = null;
+    let unsubTx = null;
+
+    function fmtTL(num) {
+      return Number(num || 0).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " ₺";
+    }
+
+    function updateUserUI() {
+      document.getElementById("activeUserLabel").textContent = state.user;
+      document.getElementById("userAvatar").textContent = state.user === "Gürkan" ? "👨🏻" : "👩🏻";
+      document.getElementById("roomSubtitle").textContent = `Oda: ${state.roomCode} • Anlık Ortak Kasa`;
+      document.getElementById("inputRoomCode").value = state.roomCode;
+
+      const btnG = document.getElementById("btnPickGurkan");
+      const btnN = document.getElementById("btnPickNedime");
+      if (state.user === "Gürkan") {
+        btnG.className = "py-2.5 rounded-xl border-2 border-sky-600 bg-sky-50 text-sky-900 font-bold text-xs";
+        btnN.className = "py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs";
+      } else {
+        btnN.className = "py-2.5 rounded-xl border-2 border-sky-600 bg-sky-50 text-sky-900 font-bold text-xs";
+        btnG.className = "py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs";
+      }
+    }
+
+    window.toggleUser = function() {
+      state.user = state.user === "Gürkan" ? "Nedime" : "Gürkan";
+      localStorage.setItem("kb_user", state.user);
+      updateUserUI();
+    };
+
+    window.setActiveUser = function(u) {
+      state.user = u;
+      localStorage.setItem("kb_user", u);
+      updateUserUI();
+    };
+
+    function setSyncStatus(connected, msg) {
+      state.isConnected = connected;
+      const badge = document.getElementById("syncBadge");
+      const dot = document.getElementById("syncDot");
+      const txt = document.getElementById("syncText");
+      const modalSt = document.getElementById("modalConnStatus");
+      if (connected) {
+        badge.className = "inline-flex items-center gap-1.5 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30";
+        dot.className = "w-2 h-2 rounded-full bg-emerald-400";
+        txt.textContent = msg || "Canlı Eşitlendi";
+        if (modalSt) { modalSt.textContent = "Canlı Bulut Bağlantısı Aktif"; modalSt.className = "font-semibold text-emerald-700"; }
+      } else {
+        badge.className = "inline-flex items-center gap-1.5 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-400/30";
+        dot.className = "w-2 h-2 rounded-full bg-rose-400";
+        txt.textContent = msg || "Bağlantı Hatası";
+        if (modalSt) { modalSt.textContent = msg || "Bağlantı Kurulamadı"; modalSt.className = "font-semibold text-rose-600"; }
+      }
+    }
+
+    function subscribeToCloud() {
+      if (unsubPeriod) unsubPeriod();
+      if (unsubTx) unsubTx();
+
+      const roomId = state.roomCode.trim().toUpperCase();
+      const periodId = state.period;
+
+      // 1. Listen to Period Budget Config
+      const periodDocRef = doc(db, "rooms", roomId, "periods", periodId);
+      unsubPeriod = onSnapshot(periodDocRef, async (snap) => {
+        setSyncStatus(true, "Canlı Eşitlendi");
+        if (snap.exists()) {
+          state.periodConfig = snap.data();
+        } else {
+          const def = DEFAULT_PERIODS[periodId] || DEFAULT_PERIODS["2026-11"];
+          state.periodConfig = def;
+          await setDoc(periodDocRef, def);
+        }
+        renderAll();
+      }, (err) => {
+        console.error(err);
+        setSyncStatus(false, "Yetki / Ağ Hatası");
+      });
+
+      // 2. Listen to Transactions in this Period
+      const txColRef = collection(db, "rooms", roomId, "periods", periodId, "transactions");
+      const q = query(txColRef, orderBy("createdAt", "desc"));
+      unsubTx = onSnapshot(q, (snapshot) => {
+        state.transactions = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderAll();
+      }, (err) => {
+        console.error(err);
+      });
+    }
+
+    window.renderAll = function() {
+      const cfg = state.periodConfig || DEFAULT_PERIODS[state.period];
+      const txs = state.transactions || [];
+
+      const cashBudget = Number(cfg.cashBudget || 0);
+      const ccBudget = Number(cfg.ccBudget || 0);
+      const fixedLoad = Number(cfg.fixedLoad || 0);
+
+      let cashSpent = 0;
+      let ccSpent = 0;
+      const weekSpent = { 1: 0, 2: 0, 3: 0, 4: 0 };
+
+      txs.forEach(t => {
+        const amt = Number(t.amount || 0);
+        if (t.method === "nakit") cashSpent += amt;
+        else ccSpent += amt;
+
+        const w = Number(t.week || 1);
+        if (weekSpent[w] !== undefined && t.method === "nakit") {
+          weekSpent[w] += amt;
+        }
+      });
+
+      const cashRem = cashBudget - cashSpent;
+      const ccRem = ccBudget - ccSpent;
+
+      // KPI Updates
+      document.getElementById("cashTotalVal").textContent = fmtTL(cashBudget);
+      const cashRemEl = document.getElementById("cashRemainingVal");
+      cashRemEl.textContent = fmtTL(cashRem);
+      cashRemEl.className = `text-xl font-extrabold mt-2 ${cashRem < 0 ? "text-rose-600" : "text-slate-900"}`;
+
+      const cashPct = cashBudget > 0 ? Math.min(100, Math.max(0, (cashSpent / cashBudget) * 100)) : (cashSpent > 0 ? 100 : 0);
+      const cashBar = document.getElementById("cashProgressBar");
+      cashBar.style.width = cashPct + "%";
+      cashBar.className = `h-full rounded-full transition-all duration-300 ${cashPct >= 100 ? "bg-rose-500" : cashPct >= 80 ? "bg-amber-500" : "bg-emerald-500"}`;
+
+      document.getElementById("ccTotalVal").textContent = fmtTL(ccBudget);
+      const ccRemEl = document.getElementById("ccRemainingVal");
+      ccRemEl.textContent = fmtTL(ccRem);
+      ccRemEl.className = `text-xl font-extrabold mt-2 ${ccRem < 0 ? "text-rose-600" : "text-slate-900"}`;
+
+      const ccPct = ccBudget > 0 ? Math.min(100, Math.max(0, (ccSpent / ccBudget) * 100)) : (ccSpent > 0 ? 100 : 0);
+      const ccBar = document.getElementById("ccProgressBar");
+      ccBar.style.width = ccPct + "%";
+      ccBar.className = `h-full rounded-full transition-all duration-300 ${ccPct >= 100 ? "bg-rose-500" : ccPct >= 80 ? "bg-amber-500" : "bg-sky-500"}`;
+
+      // Weekly Limit Calculations (4 equal weeks from cashBudget)
+      const weeklyLimit = cashBudget / 4;
+      const dailyAvg = cashBudget / 28;
+      document.getElementById("weekSubInfo").textContent = `4 haftalık nakit planı • Günlük ortalama: ${fmtTL(dailyAvg)}`;
+
+      const selectedWeek = Number(document.getElementById("weekSelect").value || 1);
+      const curWSpent = weekSpent[selectedWeek] || 0;
+      const curWRem = weeklyLimit - curWSpent;
+      const wPct = weeklyLimit > 0 ? Math.min(100, Math.max(0, (curWSpent / weeklyLimit) * 100)) : (curWSpent > 0 ? 100 : 0);
+
+      document.getElementById("weeklyLimitVal").textContent = fmtTL(weeklyLimit);
+      document.getElementById("weeklySpentVal").textContent = fmtTL(curWSpent);
+      const wRemEl = document.getElementById("weeklyRemainingVal");
+      wRemEl.textContent = fmtTL(curWRem);
+      wRemEl.className = `text-lg font-extrabold ${curWRem < 0 ? "text-rose-600" : wPct >= 80 ? "text-amber-600" : "text-emerald-600"}`;
+
+      const wBar = document.getElementById("weeklyProgressBar");
+      wBar.style.width = wPct + "%";
+      wBar.className = `h-full rounded-full transition-all duration-300 ${curWRem < 0 ? "bg-rose-500" : wPct >= 80 ? "bg-amber-500" : "bg-emerald-500"}`;
+
+      // 4 Weeks Mini Boxes
+      const fourWeeksDiv = document.getElementById("fourWeeksMini");
+      fourWeeksDiv.innerHTML = [1, 2, 3, 4].map(w => {
+        const rem = weeklyLimit - (weekSpent[w] || 0);
+        const isSel = w === selectedWeek;
+        const colorCls = rem < 0 ? "text-rose-600 bg-rose-50 border-rose-200" : isSel ? "text-sky-900 bg-sky-50 border-sky-300" : "text-slate-700 bg-slate-50 border-slate-200";
+        return `
+          <button type="button" onclick="selectWeek(${w})" class="p-2 rounded-xl border ${colorCls} transition">
+            <div class="text-[10px] font-bold opacity-75">${w}. Hafta</div>
+            <div class="text-[11px] font-extrabold mt-0.5">${Math.round(rem).toLocaleString("tr-TR")} ₺</div>
+          </button>
+        `;
+      }).join("");
+
+      // Smart Alert Banner
+      const alertBox = document.getElementById("alertBox");
+      const alertIcon = document.getElementById("alertIcon");
+      const alertTitle = document.getElementById("alertTitle");
+      const alertDesc = document.getElementById("alertDesc");
+
+      if (cashRem < 0 || ccRem < 0) {
+        alertBox.className = "card p-3.5 border-l-4 border-l-rose-600 bg-rose-50";
+        alertIcon.textContent = "🚨";
+        alertTitle.textContent = "Dikkat: Dönem Bütçe Tavanı Aşıldı!";
+        alertDesc.textContent = `Nakit veya kredi kartı harcama limitiniz eksiye düştü. Zorunlu olmayan market ve dışarıda yeme-içme harcamalarını durdurun.`;
+      } else if (curWRem < 0) {
+        alertBox.className = "card p-3.5 border-l-4 border-l-amber-500 bg-amber-50";
+        alertIcon.textContent = "⚠️";
+        alertTitle.textContent = `${selectedWeek}. Hafta Nakit Limiti Aşıldı (${fmtTL(Math.abs(curWRem))} fazla)`;
+        alertDesc.textContent = `Bu haftaki fazlalığı dengelemek için önümüzdeki haftaların bütçesinden kısmanız gerekiyor.`;
+      } else if (wPct >= 80) {
+        alertBox.className = "card p-3.5 border-l-4 border-l-amber-500 bg-amber-50/70";
+        alertIcon.textContent = "⏳";
+        alertTitle.textContent = `${selectedWeek}. Hafta Limitinin %${Math.round(wPct)}'i Kullanıldı`;
+        alertDesc.textContent = `Bu hafta kalan nakit hakkınız ${fmtTL(curWRem)}. Küçük parça market alışverişlerini erteleyin.`;
+      } else {
+        alertBox.className = "card p-3.5 border-l-4 border-l-emerald-500 bg-emerald-50/70";
+        alertIcon.textContent = "✅";
+        alertTitle.textContent = "Tasarruf Hedefi Yolunda";
+        alertDesc.textContent = `${selectedWeek}. hafta için ${fmtTL(curWRem)} kalan limitiniz var. Kredi kartını yeni taksitlere kapalı tutun.`;
+      }
+
+      // Render Transactions
+      document.getElementById("txCountBadge").textContent = txs.length;
+      const txPanel = document.getElementById("tabTxPanel");
+      if (txs.length === 0) {
+        txPanel.innerHTML = `<div class="py-8 text-center text-xs text-slate-400">Bu dönem için henüz harcama girilmedi.<br/>Yukarıdan eklediğiniz an iki telefonda da görünür.</div>`;
+      } else {
+        txPanel.innerHTML = txs.map(t => {
+          const isGurkan = t.user === "Gürkan";
+          const userBadge = isGurkan
+            ? `<span class="px-1.5 py-0.5 rounded bg-sky-100 text-sky-800 font-bold text-[10px]">👨🏻 Gürkan</span>`
+            : `<span class="px-1.5 py-0.5 rounded bg-purple-100 text-purple-800 font-bold text-[10px]">👩🏻 Nedime</span>`;
+          const methodBadge = t.method === "nakit"
+            ? `<span class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">Nakit</span>`
+            : `<span class="text-[10px] font-semibold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded">Kredi Kartı</span>`;
+
+          return `
+            <div class="py-2.5 flex items-center justify-between gap-2">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="text-xs font-bold text-slate-800">${t.category}</span>
+                  ${userBadge}
+                  ${methodBadge}
+                  <span class="text-[10px] text-slate-400">• ${t.week}. Hafta</span>
+                </div>
+                <p class="text-[11px] text-slate-500 truncate mt-0.5">${t.note ? t.note + " • " : ""}${t.dateStr || ""}</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-extrabold text-slate-900">${fmtTL(t.amount)}</span>
+                <button onclick="deleteTx('${t.id}')" class="p-1 text-slate-300 hover:text-rose-500" title="Sil">✕</button>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      // Render Fixed Items
+      document.getElementById("fixedTotalDisplay").textContent = fmtTL(fixedLoad);
+      const fixedListEl = document.getElementById("fixedItemsList");
+      const items = cfg.fixedItems || [];
+      fixedListEl.innerHTML = items.map(it => `
+        <div class="flex justify-between items-center py-2 px-3 rounded-lg bg-white border border-slate-100">
+          <div>
+            <div class="font-semibold text-slate-800">${it.name}</div>
+            <div class="text-[10px] text-slate-400">${it.note || ""}</div>
+          </div>
+          <div class="font-bold text-slate-900">${fmtTL(it.amount)}</div>
+        </div>
+      `).join("");
+    };
+
+    window.selectWeek = function(w) {
+      document.getElementById("weekSelect").value = String(w);
+      document.getElementById("expWeek").value = String(w);
+      renderAll();
+    };
+
+    window.addExpense = async function(e) {
+      e.preventDefault();
+      const amount = parseFloat(document.getElementById("expAmount").value);
+      if (!amount || amount <= 0) return;
+
+      const method = document.getElementById("expMethod").value;
+      const category = document.getElementById("expCategory").value;
+      const week = Number(document.getElementById("expWeek").value);
+      const note = document.getElementById("expNote").value.trim();
+
+      const now = new Date();
+      const dateStr = now.toLocaleDateString("tr-TR", { day: "2-digit", month: "2-digit" }) + " " +
+                      now.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
+
+      const roomId = state.roomCode.trim().toUpperCase();
+      const txColRef = collection(db, "rooms", roomId, "periods", state.period, "transactions");
+
+      try {
+        await addDoc(txColRef, {
+          amount,
+          method,
+          category,
+          week,
+          note,
+          user: state.user,
+          dateStr,
+          createdAt: Date.now()
+        });
+        document.getElementById("expAmount").value = "";
+        document.getElementById("expNote").value = "";
+      } catch (err) {
+        alert("Kayıt sırasında hata oluştu: " + err.message);
+      }
+    };
+
+    window.deleteTx = async function(txId) {
+      if (!confirm("Bu harcamayı silmek istediğinize emin misiniz?")) return;
+      const roomId = state.roomCode.trim().toUpperCase();
+      await deleteDoc(doc(db, "rooms", roomId, "periods", state.period, "transactions", txId));
+    };
+
+    window.changePeriod = function() {
+      state.period = document.getElementById("periodSelect").value;
+      localStorage.setItem("kb_period", state.period);
+      subscribeToCloud();
+    };
+
+    window.switchTab = function(tab) {
+      const txBtn = document.getElementById("tabTxBtn");
+      const fixBtn = document.getElementById("tabFixedBtn");
+      const txPanel = document.getElementById("tabTxPanel");
+      const fixPanel = document.getElementById("tabFixedPanel");
+      if (tab === "tx") {
+        txBtn.className = "flex-1 py-3 text-center tab-active";
+        fixBtn.className = "flex-1 py-3 text-center tab-inactive";
+        txPanel.classList.remove("hidden");
+        fixPanel.classList.add("hidden");
+      } else {
+        fixBtn.className = "flex-1 py-3 text-center tab-active";
+        txBtn.className = "flex-1 py-3 text-center tab-inactive";
+        fixPanel.classList.remove("hidden");
+        txPanel.classList.add("hidden");
+      }
+    };
+
+    window.openBudgetModal = function() {
+      const cfg = state.periodConfig || DEFAULT_PERIODS[state.period];
+      document.getElementById("modalPeriodLabel").textContent = `${cfg.label} dönemi için nakit ve kredi kartı limitlerini güncelleyin:`;
+      document.getElementById("inputCashBudget").value = cfg.cashBudget;
+      document.getElementById("inputCcBudget").value = cfg.ccBudget;
+      document.getElementById("inputFixedLoad").value = cfg.fixedLoad;
+      document.getElementById("budgetModal").classList.remove("hidden");
+      document.getElementById("budgetModal").classList.add("flex");
+    };
+
+    window.closeBudgetModal = function() {
+      document.getElementById("budgetModal").classList.add("hidden");
+      document.getElementById("budgetModal").classList.remove("flex");
+    };
+
+    window.savePeriodBudget = async function() {
+      const cashBudget = parseFloat(document.getElementById("inputCashBudget").value) || 0;
+      const ccBudget = parseFloat(document.getElementById("inputCcBudget").value) || 0;
+      const fixedLoad = parseFloat(document.getElementById("inputFixedLoad").value) || 0;
+
+      const roomId = state.roomCode.trim().toUpperCase();
+      const periodDocRef = doc(db, "rooms", roomId, "periods", state.period);
+      const updated = { ...(state.periodConfig || DEFAULT_PERIODS[state.period]), cashBudget, ccBudget, fixedLoad };
+
+      await setDoc(periodDocRef, updated);
+      closeBudgetModal();
+    };
+
+    window.openSettings = function() {
+      updateUserUI();
+      document.getElementById("settingsModal").classList.remove("hidden");
+      document.getElementById("settingsModal").classList.add("flex");
+    };
+
+    window.closeSettings = function() {
+      document.getElementById("settingsModal").classList.add("hidden");
+      document.getElementById("settingsModal").classList.remove("flex");
+    };
+
+    window.saveRoomSettings = function() {
+      const code = document.getElementById("inputRoomCode").value.trim().toUpperCase();
+      if (code) {
+        state.roomCode = code;
+        localStorage.setItem("kb_room", code);
+        updateUserUI();
+        subscribeToCloud();
+      }
+      closeSettings();
+    };
+
+    // Initialize Auth & App
+    document.getElementById("periodSelect").value = state.period;
+    updateUserUI();
+
+    signInAnonymously(auth).catch((err) => {
+      console.error("Auth error:", err);
+      setSyncStatus(false, "Giriş Hatası");
+    });
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        subscribeToCloud();
+      }
+    });
+  </script>
+</body>
+</html>
