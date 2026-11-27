@@ -152,7 +152,7 @@
       <div class="grid grid-cols-4 gap-2 mt-3 text-center" id="fourWeeksMini"></div>
     </div>
 
-    <!-- Quick Add Expense Form -->
+    <!-- Quick Add Expense Form (with Credit Card Installment Splitting!) -->
     <div class="card p-4">
       <h2 class="text-sm font-bold text-slate-900 mb-3 flex items-center justify-between">
         <span>➕ Hızlı Harcama Ekle</span>
@@ -162,16 +162,35 @@
       <form id="expenseForm" onsubmit="addExpense(event)" class="space-y-3">
         <div class="grid grid-cols-2 gap-2.5">
           <div>
-            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Tutar (₺)</label>
-            <input type="number" step="0.01" min="0.01" id="expAmount" required placeholder="Örn: 450" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold text-slate-900 focus:outline-none focus:border-sky-500" />
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Toplam Tutar (₺)</label>
+            <input type="number" step="0.01" min="0.01" id="expAmount" required placeholder="Örn: 450" oninput="updateInstallmentPreview()" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold text-slate-900 focus:outline-none focus:border-sky-500" />
           </div>
           <div>
             <label class="block text-[11px] font-semibold text-slate-600 mb-1">Ödeme Kanalı</label>
-            <select id="expMethod" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-semibold text-slate-800 bg-white focus:outline-none focus:border-sky-500">
+            <select id="expMethod" onchange="onMethodChange()" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-semibold text-slate-800 bg-white focus:outline-none focus:border-sky-500">
               <option value="nakit">💵 Nakit / Banka Kartı</option>
               <option value="kk">💳 Kredi Kartı</option>
             </select>
           </div>
+        </div>
+
+        <!-- Credit Card Installment Option (Shown when Kredi Kartı selected) -->
+        <div id="installmentRow" class="hidden bg-sky-50/80 border border-sky-200 rounded-xl p-2.5 space-y-1.5">
+          <div class="flex items-center justify-between gap-2">
+            <label class="text-[11px] font-bold text-sky-900">💳 Kredi Kartı Taksit Seçeneği:</label>
+            <select id="expInstallments" onchange="updateInstallmentPreview()" class="px-2.5 py-1.5 rounded-lg border border-sky-300 bg-white text-xs font-bold text-sky-950 focus:outline-none">
+              <option value="1">Tek Çekim (Bu ay)</option>
+              <option value="2">2 Taksit</option>
+              <option value="3">3 Taksit</option>
+              <option value="4">4 Taksit</option>
+              <option value="6">6 Taksit</option>
+              <option value="9">9 Taksit</option>
+              <option value="12">12 Taksit</option>
+            </select>
+          </div>
+          <p id="installmentPreviewText" class="text-[11px] text-sky-700 leading-snug">
+            Tek çekim olarak bu ayın kredi kartı limitinden düşülür.
+          </p>
         </div>
 
         <div class="grid grid-cols-2 gap-2.5">
@@ -204,20 +223,23 @@
           <input type="text" id="expNote" placeholder="Örn: BİM haftalık alışveriş, Kaynar Petrol..." class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm text-slate-800 focus:outline-none focus:border-sky-500" />
         </div>
 
-        <button type="submit" class="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-[0.99] transition text-white font-bold text-sm shadow">
+        <button type="submit" id="submitExpBtn" class="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-[0.99] transition text-white font-bold text-sm shadow">
           Harcamayı Kaydet ve Eşitle
         </button>
       </form>
     </div>
 
-    <!-- Navigation Tabs: Transactions vs Fixed Commitments -->
+    <!-- Navigation Tabs: Transactions | Category Chart & CSV Export | Fixed Commitments -->
     <div class="card overflow-hidden">
-      <div class="flex border-b border-slate-200 text-xs">
+      <div class="flex border-b border-slate-200 text-[11px]">
         <button id="tabTxBtn" onclick="switchTab('tx')" class="flex-1 py-3 text-center tab-active">
-          📋 Son Harcamalar (<span id="txCountBadge">0</span>)
+          📋 Harcamalar (<span id="txCountBadge">0</span>)
+        </button>
+        <button id="tabReportBtn" onclick="switchTab('report')" class="flex-1 py-3 text-center tab-inactive">
+          📊 Analiz & Excel
         </button>
         <button id="tabFixedBtn" onclick="switchTab('fixed')" class="flex-1 py-3 text-center tab-inactive">
-          🔒 Sabit Gider & Taksitler
+          🔒 Sabit Giderler
         </button>
       </div>
 
@@ -226,15 +248,52 @@
         <div class="py-6 text-center text-xs text-slate-400">Henüz bu dönem için harcama girilmedi.</div>
       </div>
 
-      <!-- Tab 2: Fixed Commitments & Installments -->
+      <!-- Tab 2: Category Report Chart & Excel/CSV Export -->
+      <div id="tabReportPanel" class="p-4 hidden space-y-4 text-xs">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="font-bold text-slate-900 text-sm">Kategori Bazlı Dağılım</h3>
+            <p class="text-[11px] text-slate-500" id="reportTotalSub">Toplam Değişken Harcama: 0,00 ₺</p>
+          </div>
+          <button type="button" onclick="exportToCSV()" class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-[11px] flex items-center gap-1.5 shadow-sm">
+            📥 Excel / CSV İndir
+          </button>
+        </div>
+
+        <!-- User Comparison Pills -->
+        <div class="grid grid-cols-2 gap-2" id="userSummaryBoxes"></div>
+
+        <!-- Category Visual Bars -->
+        <div id="categoryChartBars" class="space-y-2.5 pt-1">
+          <div class="py-6 text-center text-slate-400">Grafik oluşması için harcama girin.</div>
+        </div>
+      </div>
+
+      <!-- Tab 3: Fixed Commitments & Installments (Interactive Add/Delete!) -->
       <div id="tabFixedPanel" class="p-4 hidden space-y-3 text-xs">
         <div class="flex justify-between items-center p-2.5 rounded-xl bg-slate-50 border border-slate-200">
           <span class="font-bold text-slate-700">Aylık Zorunlu Sabit Yük Toplamı</span>
           <span id="fixedTotalDisplay" class="font-extrabold text-sm text-rose-600">38.245,91 ₺</span>
         </div>
+
+        <!-- Interactive Add Fixed Item Form -->
+        <form onsubmit="addFixedItem(event)" class="p-3 rounded-xl bg-slate-50/80 border border-slate-200/80 space-y-2">
+          <div class="font-bold text-[11px] text-slate-700">➕ Bu Aya Yeni Sabit Gider / Taksit Ekle</div>
+          <div class="grid grid-cols-3 gap-2">
+            <input type="text" id="newFixedName" required placeholder="Gider adı (Örn: Aidat)" class="col-span-2 px-2.5 py-2 rounded-lg border border-slate-300 text-xs bg-white focus:outline-none focus:border-sky-500" />
+            <input type="number" step="0.01" min="0.01" id="newFixedAmount" required placeholder="Tutar (₺)" class="px-2.5 py-2 rounded-lg border border-slate-300 text-xs font-bold bg-white focus:outline-none focus:border-sky-500" />
+          </div>
+          <div class="flex gap-2">
+            <input type="text" id="newFixedNote" placeholder="Not (İsteğe bağlı, örn: 2/6 taksit)" class="flex-1 px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white focus:outline-none focus:border-sky-500" />
+            <button type="submit" class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs whitespace-nowrap">
+              Ekle
+            </button>
+          </div>
+        </form>
+
         <div id="fixedItemsList" class="space-y-2"></div>
         <p class="text-[11px] text-slate-500 leading-relaxed pt-1">
-          * <strong>Dyson (5.999,89 ₺)</strong> 9 taksit olup <strong>Mayıs 2027</strong>'de biter ve aylık sabit yükünüz otomatik olarak <strong>32.246,02 ₺</strong>'ye düşer.
+          * Listeden kalem eklediğinizde veya sildiğinizde aylık sabit yük toplamı otomatik güncellenir ve eşinizin telefonuna yansır.
         </p>
       </div>
     </div>
@@ -314,7 +373,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, addDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     // Gürkan Karakan's Firebase Project Configuration (karakan-butce)
     const firebaseConfig = {
@@ -336,7 +395,17 @@
       "09": "Eylül", "10": "Ekim", "11": "Kasım", "12": "Aralık"
     };
 
-    // Known Preset Periods + Unlimited Dynamic Generator for Any Year/Month
+    const CATEGORY_COLORS = {
+      "Market & Gıda": "bg-emerald-500",
+      "Akaryakıt & Ulaşım": "bg-amber-500",
+      "Dışarıda Yeme-İçme": "bg-orange-500",
+      "Sağlık & Eczane": "bg-rose-500",
+      "Giyim & Kişisel": "bg-purple-500",
+      "Ev & Fatura": "bg-sky-500",
+      "Çocuk & Okul": "bg-indigo-500",
+      "Diğer": "bg-slate-500"
+    };
+
     const PRESET_PERIODS = {
       "2026-11": {
         label: "Kasım 2026 (28 Kas – 27 Ara)",
@@ -418,10 +487,9 @@
     };
 
     function getDefaultPeriodConfig(periodId) {
-      if (PRESET_PERIODS[periodId]) return PRESET_PERIODS[periodId];
+      if (PRESET_PERIODS[periodId]) return JSON.parse(JSON.stringify(PRESET_PERIODS[periodId]));
       const [yr, mo] = periodId.split("-");
       const label = `${MONTH_NAMES[mo] || mo} ${yr}`;
-      // May 2027 and beyond: Dyson installment completed
       if (periodId >= "2027-05") {
         return {
           label,
@@ -449,7 +517,15 @@
       };
     }
 
-    // Populate Year Selector dynamically (2025 to 2040, auto-expands if stepped beyond)
+    function addMonthsToPeriod(periodId, offset) {
+      const [yrStr, moStr] = periodId.split("-");
+      let yr = Number(yrStr);
+      let mo = Number(moStr) + offset;
+      while (mo > 12) { mo -= 12; yr += 1; }
+      while (mo < 1) { mo += 12; yr -= 1; }
+      return `${yr}-${String(mo).padStart(2, "0")}`;
+    }
+
     function initYearSelect(selectedYear) {
       const yearSel = document.getElementById("yearSelect");
       const targetY = Number(selectedYear);
@@ -517,6 +593,29 @@
       updateUserUI();
     };
 
+    window.onMethodChange = function() {
+      const method = document.getElementById("expMethod").value;
+      const instRow = document.getElementById("installmentRow");
+      if (method === "kk") {
+        instRow.classList.remove("hidden");
+        updateInstallmentPreview();
+      } else {
+        instRow.classList.add("hidden");
+      }
+    };
+
+    window.updateInstallmentPreview = function() {
+      const amount = parseFloat(document.getElementById("expAmount").value) || 0;
+      const count = Number(document.getElementById("expInstallments").value || 1);
+      const prev = document.getElementById("installmentPreviewText");
+      if (count <= 1) {
+        prev.textContent = "Tek çekim olarak yalnızca bu ayın kredi kartı limitinden düşülür.";
+      } else {
+        const monthly = amount / count;
+        prev.innerHTML = `<strong>${count} x ${fmtTL(monthly)}</strong> olarak bölünür: 1. taksit bu ay kart limitine, kalan <strong>${count - 1} taksit</strong> ise otomatik olarak gelecek ayların sabit yüküne işlenir.`;
+      }
+    };
+
     function setSyncStatus(connected, msg) {
       state.isConnected = connected;
       const badge = document.getElementById("syncBadge");
@@ -543,7 +642,6 @@
       const roomId = state.roomCode.trim().toUpperCase();
       const periodId = state.period;
 
-      // 1. Listen to Period Budget Config
       const periodDocRef = doc(db, "rooms", roomId, "periods", periodId);
       unsubPeriod = onSnapshot(periodDocRef, async (snap) => {
         setSyncStatus(true, "Canlı Eşitlendi");
@@ -560,7 +658,6 @@
         setSyncStatus(false, "Yetki / Ağ Hatası");
       });
 
-      // 2. Listen to Transactions in this Period
       const txColRef = collection(db, "rooms", roomId, "periods", periodId, "transactions");
       const q = query(txColRef, orderBy("createdAt", "desc"));
       unsubTx = onSnapshot(q, (snapshot) => {
@@ -581,17 +678,26 @@
 
       let cashSpent = 0;
       let ccSpent = 0;
+      let gurkanSpent = 0;
+      let nedimeSpent = 0;
       const weekSpent = { 1: 0, 2: 0, 3: 0, 4: 0 };
+      const catTotals = {};
 
       txs.forEach(t => {
         const amt = Number(t.amount || 0);
         if (t.method === "nakit") cashSpent += amt;
         else ccSpent += amt;
 
+        if (t.user === "Gürkan") gurkanSpent += amt;
+        else nedimeSpent += amt;
+
         const w = Number(t.week || 1);
         if (weekSpent[w] !== undefined && t.method === "nakit") {
           weekSpent[w] += amt;
         }
+
+        const cat = t.category || "Diğer";
+        catTotals[cat] = (catTotals[cat] || 0) + amt;
       });
 
       const cashRem = cashBudget - cashSpent;
@@ -618,7 +724,7 @@
       ccBar.style.width = ccPct + "%";
       ccBar.className = `h-full rounded-full transition-all duration-300 ${ccPct >= 100 ? "bg-rose-500" : ccPct >= 80 ? "bg-amber-500" : "bg-sky-500"}`;
 
-      // Weekly Limit Calculations (4 equal weeks from cashBudget)
+      // Weekly Limit Calculations
       const weeklyLimit = cashBudget / 4;
       const dailyAvg = cashBudget / 28;
       document.getElementById("weekSubInfo").textContent = `4 haftalık nakit planı • Günlük ortalama: ${fmtTL(dailyAvg)}`;
@@ -680,7 +786,7 @@
         alertDesc.textContent = `${selectedWeek}. hafta için ${fmtTL(curWRem)} kalan limitiniz var. Kredi kartını yeni taksitlere kapalı tutun.`;
       }
 
-      // Render Transactions
+      // Render Tab 1: Transactions
       document.getElementById("txCountBadge").textContent = txs.length;
       const txPanel = document.getElementById("tabTxPanel");
       if (txs.length === 0) {
@@ -715,19 +821,62 @@
         }).join("");
       }
 
-      // Render Fixed Items
+      // Render Tab 2: Category Chart & User Summary
+      const totalVarSpent = cashSpent + ccSpent;
+      document.getElementById("reportTotalSub").textContent = `Toplam Değişken Harcama: ${fmtTL(totalVarSpent)}`;
+      document.getElementById("userSummaryBoxes").innerHTML = `
+        <div class="p-2.5 rounded-xl bg-sky-50 border border-sky-200">
+          <div class="text-[10px] font-bold text-sky-800">👨🏻 Gürkan Toplam</div>
+          <div class="text-sm font-extrabold text-slate-900 mt-0.5">${fmtTL(gurkanSpent)}</div>
+        </div>
+        <div class="p-2.5 rounded-xl bg-purple-50 border border-purple-200">
+          <div class="text-[10px] font-bold text-purple-800">👩🏻 Nedime Toplam</div>
+          <div class="text-sm font-extrabold text-slate-900 mt-0.5">${fmtTL(nedimeSpent)}</div>
+        </div>
+      `;
+
+      const chartContainer = document.getElementById("categoryChartBars");
+      const sortedCats = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
+      if (sortedCats.length === 0) {
+        chartContainer.innerHTML = `<div class="py-6 text-center text-slate-400">Bu dönemde henüz harcama verisi yok.</div>`;
+      } else {
+        chartContainer.innerHTML = sortedCats.map(([cat, val]) => {
+          const pct = totalVarSpent > 0 ? Math.round((val / totalVarSpent) * 100) : 0;
+          const barColor = CATEGORY_COLORS[cat] || "bg-slate-600";
+          return `
+            <div class="space-y-1">
+              <div class="flex justify-between text-[11px]">
+                <span class="font-bold text-slate-800">${cat}</span>
+                <span class="text-slate-600 font-semibold">${fmtTL(val)} <span class="text-slate-400">(%${pct})</span></span>
+              </div>
+              <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                <div class="${barColor} h-full rounded-full transition-all duration-300" style="width: ${pct}%"></div>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      // Render Tab 3: Interactive Fixed Items
       document.getElementById("fixedTotalDisplay").textContent = fmtTL(fixedLoad);
       const fixedListEl = document.getElementById("fixedItemsList");
       const items = cfg.fixedItems || [];
-      fixedListEl.innerHTML = items.map(it => `
-        <div class="flex justify-between items-center py-2 px-3 rounded-lg bg-white border border-slate-100">
-          <div>
-            <div class="font-semibold text-slate-800">${it.name}</div>
-            <div class="text-[10px] text-slate-400">${it.note || ""}</div>
+      if (items.length === 0) {
+        fixedListEl.innerHTML = `<div class="py-4 text-center text-slate-400">Sabit gider kalemi bulunmuyor.</div>`;
+      } else {
+        fixedListEl.innerHTML = items.map((it, idx) => `
+          <div class="flex justify-between items-center py-2 px-3 rounded-lg bg-white border border-slate-100 gap-2">
+            <div class="min-w-0 flex-1">
+              <div class="font-semibold text-slate-800 truncate">${it.name}</div>
+              <div class="text-[10px] text-slate-400 truncate">${it.note || ""}</div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-slate-900 whitespace-nowrap">${fmtTL(it.amount)}</span>
+              <button type="button" onclick="deleteFixedItem(${idx})" class="p-1 text-slate-300 hover:text-rose-500 font-bold" title="Kalemi Sil">✕</button>
+            </div>
           </div>
-          <div class="font-bold text-slate-900">${fmtTL(it.amount)}</div>
-        </div>
-      `).join("");
+        `).join("");
+      }
     };
 
     window.selectWeek = function(w) {
@@ -738,13 +887,18 @@
 
     window.addExpense = async function(e) {
       e.preventDefault();
-      const amount = parseFloat(document.getElementById("expAmount").value);
-      if (!amount || amount <= 0) return;
+      const totalAmount = parseFloat(document.getElementById("expAmount").value);
+      if (!totalAmount || totalAmount <= 0) return;
 
       const method = document.getElementById("expMethod").value;
       const category = document.getElementById("expCategory").value;
       const week = Number(document.getElementById("expWeek").value);
-      const note = document.getElementById("expNote").value.trim();
+      const rawNote = document.getElementById("expNote").value.trim();
+      const installments = method === "kk" ? Number(document.getElementById("expInstallments").value || 1) : 1;
+
+      const btn = document.getElementById("submitExpBtn");
+      btn.disabled = true;
+      btn.textContent = "Kaydediliyor...";
 
       const now = new Date();
       const dateStr = now.toLocaleDateString("tr-TR", { day: "2-digit", month: "2-digit" }) + " " +
@@ -754,20 +908,62 @@
       const txColRef = collection(db, "rooms", roomId, "periods", state.period, "transactions");
 
       try {
-        await addDoc(txColRef, {
-          amount,
-          method,
-          category,
-          week,
-          note,
-          user: state.user,
-          dateStr,
-          createdAt: Date.now()
-        });
+        if (method === "kk" && installments > 1) {
+          const perInstallment = Number((totalAmount / installments).toFixed(2));
+          const firstNote = `${rawNote ? rawNote + " • " : ""}${installments} Taksit (1/${installments} - Toplam ${fmtTL(totalAmount)})`;
+
+          // 1st installment goes into current month's credit card spending
+          await addDoc(txColRef, {
+            amount: perInstallment,
+            method: "kk",
+            category,
+            week,
+            note: firstNote,
+            user: state.user,
+            dateStr,
+            createdAt: Date.now()
+          });
+
+          // Remaining installments (2..N) automatically added to future months' fixed commitments
+          const itemTitle = `${rawNote || category} (K.Kartı Taksit)`;
+          for (let i = 1; i < installments; i++) {
+            const futurePeriod = addMonthsToPeriod(state.period, i);
+            const futureDocRef = doc(db, "rooms", roomId, "periods", futurePeriod);
+            const snap = await getDoc(futureDocRef);
+            const fData = snap.exists() ? snap.data() : getDefaultPeriodConfig(futurePeriod);
+            const fItems = Array.isArray(fData.fixedItems) ? [...fData.fixedItems] : [];
+
+            fItems.push({
+              name: `${itemTitle} (${i + 1}/${installments})`,
+              amount: perInstallment,
+              note: `${state.user} • Toplam ${fmtTL(totalAmount)}`
+            });
+
+            const newFixedLoad = fItems.reduce((acc, x) => acc + Number(x.amount || 0), 0);
+            await setDoc(futureDocRef, { ...fData, fixedItems: fItems, fixedLoad: Number(newFixedLoad.toFixed(2)) });
+          }
+        } else {
+          await addDoc(txColRef, {
+            amount: totalAmount,
+            method,
+            category,
+            week,
+            note: rawNote,
+            user: state.user,
+            dateStr,
+            createdAt: Date.now()
+          });
+        }
+
         document.getElementById("expAmount").value = "";
         document.getElementById("expNote").value = "";
+        document.getElementById("expInstallments").value = "1";
+        updateInstallmentPreview();
       } catch (err) {
         alert("Kayıt sırasında hata oluştu: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Harcamayı Kaydet ve Eşitle";
       }
     };
 
@@ -775,6 +971,92 @@
       if (!confirm("Bu harcamayı silmek istediğinize emin misiniz?")) return;
       const roomId = state.roomCode.trim().toUpperCase();
       await deleteDoc(doc(db, "rooms", roomId, "periods", state.period, "transactions", txId));
+    };
+
+    // Interactive Fixed Items: Add & Delete
+    window.addFixedItem = async function(e) {
+      e.preventDefault();
+      const name = document.getElementById("newFixedName").value.trim();
+      const amount = parseFloat(document.getElementById("newFixedAmount").value);
+      const note = document.getElementById("newFixedNote").value.trim();
+      if (!name || !amount || amount <= 0) return;
+
+      const cfg = state.periodConfig || getDefaultPeriodConfig(state.period);
+      const items = Array.isArray(cfg.fixedItems) ? [...cfg.fixedItems] : [];
+      items.push({ name, amount, note: note || `${state.user} ekledi` });
+
+      const newTotal = items.reduce((sum, x) => sum + Number(x.amount || 0), 0);
+      const roomId = state.roomCode.trim().toUpperCase();
+      const periodDocRef = doc(db, "rooms", roomId, "periods", state.period);
+
+      await setDoc(periodDocRef, { ...cfg, fixedItems: items, fixedLoad: Number(newTotal.toFixed(2)) });
+      document.getElementById("newFixedName").value = "";
+      document.getElementById("newFixedAmount").value = "";
+      document.getElementById("newFixedNote").value = "";
+    };
+
+    window.deleteFixedItem = async function(index) {
+      if (!confirm("Bu sabit gider / taksit kalemini listeden silmek istiyor musunuz?")) return;
+      const cfg = state.periodConfig || getDefaultPeriodConfig(state.period);
+      const items = Array.isArray(cfg.fixedItems) ? [...cfg.fixedItems] : [];
+      items.splice(index, 1);
+
+      const newTotal = items.reduce((sum, x) => sum + Number(x.amount || 0), 0);
+      const roomId = state.roomCode.trim().toUpperCase();
+      const periodDocRef = doc(db, "rooms", roomId, "periods", state.period);
+
+      await setDoc(periodDocRef, { ...cfg, fixedItems: items, fixedLoad: Number(newTotal.toFixed(2)) });
+    };
+
+    // Excel / CSV Export
+    window.exportToCSV = function() {
+      const cfg = state.periodConfig || getDefaultPeriodConfig(state.period);
+      const txs = state.transactions || [];
+      const fixedItems = cfg.fixedItems || [];
+
+      const rows = [
+        ["Dönem", "Tür", "Tarih", "Kişi", "Hafta", "Ödeme Kanalı", "Kategori / Kalem", "Açıklama / Not", "Tutar (TL)"]
+      ];
+
+      txs.forEach(t => {
+        rows.push([
+          state.period,
+          "Değişken Harcama",
+          t.dateStr || "",
+          t.user || "",
+          `${t.week || 1}. Hafta`,
+          t.method === "nakit" ? "Nakit / Banka Kartı" : "Kredi Kartı",
+          t.category || "",
+          (t.note || "").replace(/;/g, ","),
+          Number(t.amount || 0).toFixed(2).replace(".", ",")
+        ]);
+      });
+
+      fixedItems.forEach(f => {
+        rows.push([
+          state.period,
+          "Sabit Gider / Taksit",
+          "-",
+          "Ortak",
+          "Sabit",
+          "Otomatik / Taksit",
+          f.name || "",
+          (f.note || "").replace(/;/g, ","),
+          Number(f.amount || 0).toFixed(2).replace(".", ",")
+        ]);
+      });
+
+      const csvContent = "﻿" + rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(";")).join("
+");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Karakan_Butce_${state.period}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     };
 
     window.onYearMonthChange = function() {
@@ -789,12 +1071,7 @@
     };
 
     window.stepMonth = function(delta) {
-      const [yrStr, moStr] = state.period.split("-");
-      let yr = Number(yrStr);
-      let mo = Number(moStr) + delta;
-      if (mo > 12) { mo = 1; yr += 1; }
-      if (mo < 1) { mo = 12; yr -= 1; }
-      const nextPeriod = `${yr}-${String(mo).padStart(2, "0")}`;
+      const nextPeriod = addMonthsToPeriod(state.period, delta);
       state.period = nextPeriod;
       localStorage.setItem("kb_period", state.period);
       syncCalendarDropdowns(nextPeriod);
@@ -805,21 +1082,18 @@
     };
 
     window.switchTab = function(tab) {
-      const txBtn = document.getElementById("tabTxBtn");
-      const fixBtn = document.getElementById("tabFixedBtn");
-      const txPanel = document.getElementById("tabTxPanel");
-      const fixPanel = document.getElementById("tabFixedPanel");
-      if (tab === "tx") {
-        txBtn.className = "flex-1 py-3 text-center tab-active";
-        fixBtn.className = "flex-1 py-3 text-center tab-inactive";
-        txPanel.classList.remove("hidden");
-        fixPanel.classList.add("hidden");
-      } else {
-        fixBtn.className = "flex-1 py-3 text-center tab-active";
-        txBtn.className = "flex-1 py-3 text-center tab-inactive";
-        fixPanel.classList.remove("hidden");
-        txPanel.classList.add("hidden");
-      }
+      const tabs = ["tx", "report", "fixed"];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}Btn`);
+        const panel = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}Panel`);
+        if (t === tab) {
+          btn.className = "flex-1 py-3 text-center tab-active";
+          panel.classList.remove("hidden");
+        } else {
+          btn.className = "flex-1 py-3 text-center tab-inactive";
+          panel.classList.add("hidden");
+        }
+      });
     };
 
     window.openBudgetModal = function() {
