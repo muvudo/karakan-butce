@@ -88,7 +88,6 @@
 
     <!-- Main KPI Cards: Cash & Credit Card -->
     <div class="grid grid-cols-2 gap-3">
-      <!-- Nakit / Banka Kartı Kasası -->
       <div class="card p-3.5">
         <div class="flex items-center justify-between">
           <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">Nakit / Hesap</span>
@@ -103,7 +102,6 @@
         </div>
       </div>
 
-      <!-- Kredi Kartı Serbest Harcama Limiti -->
       <div class="card p-3.5">
         <div class="flex items-center justify-between">
           <span class="text-[11px] font-bold uppercase tracking-wider text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md">Kredi Kartı</span>
@@ -148,11 +146,10 @@
         </div>
       </div>
 
-      <!-- Mini 4-Week Overview -->
       <div class="grid grid-cols-4 gap-2 mt-3 text-center" id="fourWeeksMini"></div>
     </div>
 
-    <!-- Quick Add Expense Form (with Credit Card Installment Splitting!) -->
+    <!-- Quick Add Expense Form -->
     <div class="card p-4">
       <h2 class="text-sm font-bold text-slate-900 mb-3 flex items-center justify-between">
         <span>➕ Hızlı Harcama Ekle</span>
@@ -174,7 +171,6 @@
           </div>
         </div>
 
-        <!-- Credit Card Installment Option (Shown when Kredi Kartı selected) -->
         <div id="installmentRow" class="hidden bg-sky-50/80 border border-sky-200 rounded-xl p-2.5 space-y-1.5">
           <div class="flex items-center justify-between gap-2">
             <label class="text-[11px] font-bold text-sky-900">💳 Kredi Kartı Taksit Seçeneği:</label>
@@ -229,7 +225,7 @@
       </form>
     </div>
 
-    <!-- Navigation Tabs: Transactions | Category Chart & CSV Export | Fixed Commitments -->
+    <!-- Navigation Tabs -->
     <div class="card overflow-hidden">
       <div class="flex border-b border-slate-200 text-[11px]">
         <button id="tabTxBtn" onclick="switchTab('tx')" class="flex-1 py-3 text-center tab-active">
@@ -260,23 +256,20 @@
           </button>
         </div>
 
-        <!-- User Comparison Pills -->
         <div class="grid grid-cols-2 gap-2" id="userSummaryBoxes"></div>
 
-        <!-- Category Visual Bars -->
         <div id="categoryChartBars" class="space-y-2.5 pt-1">
           <div class="py-6 text-center text-slate-400">Grafik oluşması için harcama girin.</div>
         </div>
       </div>
 
-      <!-- Tab 3: Fixed Commitments & Installments (Interactive Add/Delete!) -->
+      <!-- Tab 3: Fixed Commitments & Installments -->
       <div id="tabFixedPanel" class="p-4 hidden space-y-3 text-xs">
         <div class="flex justify-between items-center p-2.5 rounded-xl bg-slate-50 border border-slate-200">
           <span class="font-bold text-slate-700">Aylık Zorunlu Sabit Yük Toplamı</span>
           <span id="fixedTotalDisplay" class="font-extrabold text-sm text-rose-600">38.245,91 ₺</span>
         </div>
 
-        <!-- Interactive Add Fixed Item Form -->
         <form onsubmit="addFixedItem(event)" class="p-3 rounded-xl bg-slate-50/80 border border-slate-200/80 space-y-2">
           <div class="font-bold text-[11px] text-slate-700">➕ Bu Aya Yeni Sabit Gider / Taksit Ekle</div>
           <div class="grid grid-cols-3 gap-2">
@@ -313,12 +306,10 @@
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">Bu Ay Nakit / Banka Kartı Bütçesi (₺)</label>
           <input type="number" step="0.01" id="inputCashBudget" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold" />
-          <p class="text-[11px] text-slate-400 mt-0.5">4 haftalık nakit harcama limitiniz bu tutar üzerinden otomatik bölünür.</p>
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">Bu Ay Kredi Kartı Ekstra Harcama Tavanı (₺)</label>
           <input type="number" step="0.01" id="inputCcBudget" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold" />
-          <p class="text-[11px] text-slate-400 mt-0.5">Sabit taksitler dışında kredi kartından yapılacak güvenli harcama limiti.</p>
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">Aylık Sabit Gider & Taksit Yükü (₺)</label>
@@ -369,13 +360,11 @@
     </div>
   </div>
 
-  <!-- Firebase SDK (v10 Modular via CDN) -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, addDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    // Gürkan Karakan's Firebase Project Configuration (karakan-butce)
     const firebaseConfig = {
       apiKey: "AIzaSyCR2hJfnXGC53SgnDFVzl1U2cMJVKqF-0Y",
       authDomain: "karakan-butce.firebaseapp.com",
@@ -547,7 +536,6 @@
       document.getElementById("monthSelect").value = mo;
     }
 
-    // App State
     let state = {
       user: localStorage.getItem("kb_user") || "Gürkan",
       roomCode: localStorage.getItem("kb_room") || "KARAKAN-2026",
@@ -703,7 +691,6 @@
       const cashRem = cashBudget - cashSpent;
       const ccRem = ccBudget - ccSpent;
 
-      // KPI Updates
       document.getElementById("cashTotalVal").textContent = fmtTL(cashBudget);
       const cashRemEl = document.getElementById("cashRemainingVal");
       cashRemEl.textContent = fmtTL(cashRem);
@@ -724,7 +711,6 @@
       ccBar.style.width = ccPct + "%";
       ccBar.className = `h-full rounded-full transition-all duration-300 ${ccPct >= 100 ? "bg-rose-500" : ccPct >= 80 ? "bg-amber-500" : "bg-sky-500"}`;
 
-      // Weekly Limit Calculations
       const weeklyLimit = cashBudget / 4;
       const dailyAvg = cashBudget / 28;
       document.getElementById("weekSubInfo").textContent = `4 haftalık nakit planı • Günlük ortalama: ${fmtTL(dailyAvg)}`;
@@ -744,7 +730,6 @@
       wBar.style.width = wPct + "%";
       wBar.className = `h-full rounded-full transition-all duration-300 ${curWRem < 0 ? "bg-rose-500" : wPct >= 80 ? "bg-amber-500" : "bg-emerald-500"}`;
 
-      // 4 Weeks Mini Boxes
       const fourWeeksDiv = document.getElementById("fourWeeksMini");
       fourWeeksDiv.innerHTML = [1, 2, 3, 4].map(w => {
         const rem = weeklyLimit - (weekSpent[w] || 0);
@@ -758,7 +743,6 @@
         `;
       }).join("");
 
-      // Smart Alert Banner
       const alertBox = document.getElementById("alertBox");
       const alertIcon = document.getElementById("alertIcon");
       const alertTitle = document.getElementById("alertTitle");
@@ -786,7 +770,6 @@
         alertDesc.textContent = `${selectedWeek}. hafta için ${fmtTL(curWRem)} kalan limitiniz var. Kredi kartını yeni taksitlere kapalı tutun.`;
       }
 
-      // Render Tab 1: Transactions
       document.getElementById("txCountBadge").textContent = txs.length;
       const txPanel = document.getElementById("tabTxPanel");
       if (txs.length === 0) {
@@ -821,7 +804,6 @@
         }).join("");
       }
 
-      // Render Tab 2: Category Chart & User Summary
       const totalVarSpent = cashSpent + ccSpent;
       document.getElementById("reportTotalSub").textContent = `Toplam Değişken Harcama: ${fmtTL(totalVarSpent)}`;
       document.getElementById("userSummaryBoxes").innerHTML = `
@@ -857,7 +839,6 @@
         }).join("");
       }
 
-      // Render Tab 3: Interactive Fixed Items
       document.getElementById("fixedTotalDisplay").textContent = fmtTL(fixedLoad);
       const fixedListEl = document.getElementById("fixedItemsList");
       const items = cfg.fixedItems || [];
@@ -912,7 +893,6 @@
           const perInstallment = Number((totalAmount / installments).toFixed(2));
           const firstNote = `${rawNote ? rawNote + " • " : ""}${installments} Taksit (1/${installments} - Toplam ${fmtTL(totalAmount)})`;
 
-          // 1st installment goes into current month's credit card spending
           await addDoc(txColRef, {
             amount: perInstallment,
             method: "kk",
@@ -924,7 +904,6 @@
             createdAt: Date.now()
           });
 
-          // Remaining installments (2..N) automatically added to future months' fixed commitments
           const itemTitle = `${rawNote || category} (K.Kartı Taksit)`;
           for (let i = 1; i < installments; i++) {
             const futurePeriod = addMonthsToPeriod(state.period, i);
@@ -973,7 +952,6 @@
       await deleteDoc(doc(db, "rooms", roomId, "periods", state.period, "transactions", txId));
     };
 
-    // Interactive Fixed Items: Add & Delete
     window.addFixedItem = async function(e) {
       e.preventDefault();
       const name = document.getElementById("newFixedName").value.trim();
@@ -1008,7 +986,6 @@
       await setDoc(periodDocRef, { ...cfg, fixedItems: items, fixedLoad: Number(newTotal.toFixed(2)) });
     };
 
-    // Excel / CSV Export
     window.exportToCSV = function() {
       const cfg = state.periodConfig || getDefaultPeriodConfig(state.period);
       const txs = state.transactions || [];
@@ -1046,8 +1023,8 @@
         ]);
       });
 
-      const csvContent = "﻿" + rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(";")).join("
-");
+      const csvLines = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(";"));
+      const csvContent = "\uFEFF" + csvLines.join("\r\n");
       const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -1148,13 +1125,12 @@
       closeSettings();
     };
 
-    // Initialize Auth & App
     syncCalendarDropdowns(state.period);
     updateUserUI();
 
     signInAnonymously(auth).catch((err) => {
       console.error("Auth error:", err);
-      setSyncStatus(false, "Giriş Hatası");
+      setSyncStatus(false, "Giriş Hatası: " + err.code);
     });
 
     onAuthStateChanged(auth, (user) => {
